@@ -64,12 +64,20 @@ Q1_data %>%
   ggplot(aes(x= Time, y = weight)) +
   geom_lineribbon(aes(ymin = .lower, ymax = .upper, fill = .width), 
                   col = '#a13939',
-                  alpha = 0.5) +
-  facet_wrap(~ Diet) +
+                  alpha = 0.5,
+                  linewidth = 0.7) +
+  facet_wrap(~ Diet, labeller = labeller(Diet = ~ paste("Diet", .))) +
   scale_color_manual(values = custom_palette) +
-  scale_fill_manual(values = c("0.5" = "#94AEA8", 
+  scale_fill_manual(values = c("0.95" = "#94AEA8", 
                                "0.8" = "#5E857C", 
-                               "0.95" = "#285C50"))
+                               "0.5" = "#285C50")) +
+  labs(title = '',
+       subtitle = '',
+       fill = 'Confidence Interval',
+       x = "Time (Days since birth)",
+       y = "Chick Weight (grams)") +
+  theme_minimal() +
+  theme(legend.position = 'top')
 
 #Tones for the fill
 # "#94AEA8"
