@@ -11,7 +11,7 @@ execute:
   message: false
 ---
 
-```{r}
+```{r libraries, warning=FALSE}
 #| label: setup
 library(ggplot2)
 library(dplyr)
@@ -27,10 +27,14 @@ library(ggdist)
 
 ```{r}
 #| label: ex1-q1
-data(ChickWeight)
+
+Q1_data <- as.data.frame(ChickWeight)
 
 # your wrangling + chart code here
 ```
+
+
+
 
 ### Question 2: Which diet(s) have an unusual distribution of day-21 weights?
 
