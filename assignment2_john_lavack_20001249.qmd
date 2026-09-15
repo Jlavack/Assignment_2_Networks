@@ -7,10 +7,10 @@ format:
 embed-resources: true
 project:
   execute:
-    dir: document
-  # type: document
+    # dir: document
+  type: document
 execute:
-  # dir: project
+  dir: project
   echo: true
   warning: false
   message: false
@@ -60,12 +60,14 @@ Q1_data <- as.data.frame(ChickWeight)
 
 Q1_data %>%
   group_by(Diet, Time) %>%
+  #create formula components for CIs
   summarise(
     n = n(),
     Mean_weight = mean(weight),
     se = sd(weight) / sqrt(n()),
     .groups = 'drop'
   ) %>%
+  #calculate the CIs
   mutate(
     ci_50_lower = Mean_weight - qt(0.75, n - 1) * se,
     ci_50_upper = Mean_weight + qt(0.75, n - 1) * se,
@@ -73,7 +75,8 @@ Q1_data %>%
     ci_80_upper = Mean_weight + qt(0.90, n - 1) * se,
     ci_95_lower = Mean_weight - qt(0.975, n - 1) * se,
     ci_95_upper = Mean_weight + qt(0.975, n - 1) * se,
-  ) %>% #pivoting to make it shaped like the data from mean_qi(), which was so easy to use
+  ) %>% 
+  #pivoting to make it shaped like the data from mean_qi(), which was so easy to use
   pivot_longer(starts_with("ci_"), 
                names_to = c("type", ".width", "interval"),
                names_sep = "_",
@@ -81,24 +84,30 @@ Q1_data %>%
   pivot_wider(names_from = "interval",
               names_prefix = ".",
               values_from = "value") %>%
+  #making ci intervals factors for neat graph fill mapping
   mutate(.width = factor(sub("ci_", "", .width), 
                          levels = c("50", "80", "95"))) %>%
+  #plotting, them geoms
   ggplot(aes(x= Time, y = Mean_weight)) +
+  #this I found at https://mjskay.github.io/ggdist/articles/lineribbon.html
   geom_lineribbon(aes(ymin = .lower, ymax = .upper, fill = .width), 
                   col = '#a13939',
                   alpha = 0.5,
                   linewidth = 0.7) +
   facet_wrap(~ Diet, labeller = labeller(Diet = ~ paste("Diet", .))) +
+  #Scale related commands
   scale_color_manual(values = custom_palette) +
   #custom fill based off custom palette
   scale_fill_manual(values = c("95" = "#94AEA8", 
                                "80" = "#5E857C", 
                                "50" = "#285C50")) +
+  #Labels
   labs(title = 'Confidence intervals for chick weight widen as chicks age',
        subtitle = 'As diets increase weight gain, their confidence intervals also widen',
        fill = 'Confidence Interval',
        x = "Time (Days since birth)",
        y = "Mean Chick Weight (grams)") +
+  #themes
   theme_minimal() +
   theme(legend.position = 'top',
         plot.title = element_text(size = 15),
@@ -113,7 +122,6 @@ Q1_data %>%
 # "#1E453C"
 # "#142E28"
 
-# your wrangling + chart code here
 ```
 
 
