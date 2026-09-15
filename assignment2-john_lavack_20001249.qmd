@@ -55,25 +55,49 @@ Q1_data <- as.data.frame(ChickWeight)
 
 Q1_data %>%
   group_by(Diet, Time) %>%
-  mean_qi(weight, .width = c(0.5, 0.8, 0.95)) %>% #mean quintiles from ggdist
-  mutate(.width = factor(.width, levels = c(0.5, 0.8, 0.95))) %>%
-  ggplot(aes(x= Time, y = weight)) +
+  summarise(
+    n = n(),
+    Mean_weight = mean(weight),
+    se = sd(weight) / sqrt(n()),
+    .groups = 'drop'
+  ) %>%
+  mutate(
+    ci_50_lower = Mean_weight - qt(0.75, n - 1) * se,
+    ci_50_upper = Mean_weight + qt(0.75, n - 1) * se,
+    ci_80_lower = Mean_weight - qt(0.90, n - 1) * se,
+    ci_80_upper = Mean_weight + qt(0.90, n - 1) * se,
+    ci_95_lower = Mean_weight - qt(0.975, n - 1) * se,
+    ci_95_upper = Mean_weight + qt(0.975, n - 1) * se,
+  ) %>% #pivoting to make it shaped like the data from mean_qi(), which was so easy to use
+  pivot_longer(starts_with("ci_"), 
+               names_to = c("type", ".width", "interval"),
+               names_sep = "_",
+               values_to = "value") %>%
+  pivot_wider(names_from = "interval",
+              names_prefix = ".",
+              values_from = "value") %>%
+  mutate(.width = factor(sub("ci_", "", .width), 
+                         levels = c("50", "80", "95"))) %>%
+  ggplot(aes(x= Time, y = Mean_weight)) +
   geom_lineribbon(aes(ymin = .lower, ymax = .upper, fill = .width), 
                   col = '#a13939',
                   alpha = 0.5,
                   linewidth = 0.7) +
   facet_wrap(~ Diet, labeller = labeller(Diet = ~ paste("Diet", .))) +
   scale_color_manual(values = custom_palette) +
-  scale_fill_manual(values = c("0.95" = "#94AEA8", 
-                               "0.8" = "#5E857C", 
-                               "0.5" = "#285C50")) +
-  labs(title = '',
-       subtitle = '',
+  #custom fill based off custom palette
+  scale_fill_manual(values = c("95" = "#94AEA8", 
+                               "80" = "#5E857C", 
+                               "50" = "#285C50")) +
+  labs(title = 'Confidence intervals for chick weight widen as chicks age',
+       subtitle = 'As diets increase weight gain, their confidence intervals also widen',
        fill = 'Confidence Interval',
        x = "Time (Days since birth)",
-       y = "Chick Weight (grams)") +
+       y = "Mean Chick Weight (grams)") +
   theme_minimal() +
-  theme(legend.position = 'top')
+  theme(legend.position = 'top',
+        plot.title = element_text(size = 15),
+        strip.text = element_text(face = "bold"))
 
 #Tones for the fill
 # "#94AEA8"
