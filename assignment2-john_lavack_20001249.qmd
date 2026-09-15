@@ -21,6 +21,18 @@ library(tidyverse)
 library(ggdist)
 ```
 
+```{r}
+custom_palette <- c(
+  "#18171e",
+  "#a13939", 
+  "#967348", 
+  "#a59860", 
+  "#5a903f", 
+  "#285c50"
+  )
+```
+
+
 ## Exercise 1
 
 For each of the following questions you are required to produce a chart that seeks to answer the question, focusing only on the final weigh-in (Time == 21).
@@ -47,10 +59,24 @@ Q1_data %>%
 
 Q1_data %>%
   group_by(Diet, Time) %>%
-  mean_qi(weight, .width = c(0.50, 0.80, 0.95)) %>% #mean quintiles from ggdist
-  ggplot(aes(x= Time, y = weight, col = Diet)) +
-  geom_lineribbon(aes(ymin = .lower, ymax = .upper))
+  mean_qi(weight, .width = c(0.5, 0.8, 0.95)) %>% #mean quintiles from ggdist
+  mutate(.width = factor(.width, levels = c(0.5, 0.8, 0.95))) %>%
+  ggplot(aes(x= Time, y = weight)) +
+  geom_lineribbon(aes(ymin = .lower, ymax = .upper, fill = .width), 
+                  col = '#a13939',
+                  alpha = 0.5) +
+  facet_wrap(~ Diet) +
+  scale_color_manual(values = custom_palette) +
+  scale_fill_manual(values = c("0.5" = "#94AEA8", 
+                               "0.8" = "#5E857C", 
+                               "0.95" = "#285C50"))
 
+#Tones for the fill
+# "#94AEA8"
+# "#5E857C"
+# "#285C50"
+# "#1E453C"
+# "#142E28"
 
 # your wrangling + chart code here
 ```
