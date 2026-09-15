@@ -5,7 +5,12 @@ format:
   html:
     toc: true
 embed-resources: true
+project:
+  execute:
+    dir: document
+  # type: document
 execute:
+  # dir: project
   echo: true
   warning: false
   message: false
@@ -97,7 +102,9 @@ Q1_data %>%
   theme_minimal() +
   theme(legend.position = 'top',
         plot.title = element_text(size = 15),
-        strip.text = element_text(face = "bold"))
+        strip.text = element_text(face = "bold"),
+        axis.title.x = element_text(margin = margin(t = 10)),
+        axis.title.y = element_text(margin = margin(r = 10)))
 
 #Tones for the fill
 # "#94AEA8"
@@ -108,8 +115,6 @@ Q1_data %>%
 
 # your wrangling + chart code here
 ```
-
-
 
 
 ### Question 2: Which diet(s) have an unusual distribution of day-21 weights?
