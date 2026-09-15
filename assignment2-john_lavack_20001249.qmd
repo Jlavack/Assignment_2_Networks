@@ -11,7 +11,7 @@ execute:
   message: false
 ---
 
-```{r libraries, warning=FALSE}
+```{r libraries, warning=FALSE, echo = FALSE}
 #| label: setup
 library(ggplot2)
 library(dplyr)
@@ -52,10 +52,6 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 # This will use geom_lineribbon from ggdist
 
 Q1_data <- as.data.frame(ChickWeight)
-
-Q1_data %>% 
-  group_by(Diet, Time) %>%
-  summarise(avg_weight = mean(weight), count = n())
 
 Q1_data %>%
   group_by(Diet, Time) %>%
