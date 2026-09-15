@@ -1,6 +1,6 @@
 ---
 title: "161.307: Assignment 2"
-author: "YOUR NAME, YOUR ID"
+author: "John Lavack, 20001249"
 format: 
   html:
     toc: true
@@ -17,6 +17,8 @@ library(ggplot2)
 library(dplyr)
 library(tidygraph)
 library(ggraph)
+library(tidyverse)
+library(ggdist)
 ```
 
 ## Exercise 1
