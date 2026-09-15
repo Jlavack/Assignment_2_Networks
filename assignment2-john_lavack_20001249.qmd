@@ -1,0 +1,139 @@
+---
+title: "161.307: Assignment 2"
+author: "YOUR NAME, YOUR ID"
+format: 
+  html:
+    toc: true
+embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(ggplot2)
+library(dplyr)
+library(tidygraph)
+library(ggraph)
+```
+
+## Exercise 1
+
+### Question 1: Which diet produces the heaviest chicks by day 21?
+
+```{r}
+#| label: ex1-q1
+data(ChickWeight)
+
+# your wrangling + chart code here
+```
+
+### Question 2: Which diet(s) have an unusual distribution of day-21 weights?
+
+```{r}
+#| label: ex1-q2
+
+# your wrangling + chart code here
+```
+
+## Exercise 2
+
+### Part 1: Purpose of the wrangling code
+
+*(no more than 3 sentences)*
+
+> YOUR ANSWER HERE
+
+### Part 2: Reproduce the chart
+
+```{r}
+#| label: ex2-wrangling
+data(highschool, package = "ggraph")
+
+edge_weights <- highschool |>
+  count(from, to, name = "weight")
+
+g <- as_tbl_graph(edge_weights, directed = FALSE) |>
+  activate(nodes) |>
+  mutate(degree = centrality_degree())
+```
+
+```{r, eval = F}
+#| label: ex2-chart
+#| fig-width: 9
+#| fig-height: 6
+
+# modify this code to reproduce the target chart
+# change the eval option of this chunk to execute it, once you 
+# have put adequate values instead of the "??" below
+set.seed(??)
+ggraph(g, layout = "??") +
+  geom_edge_link(aes(width = ??), alpha = ??) +
+  geom_node_point(aes(colour = ??), size = ??) +
+  theme_void()
+```
+
+## Exercise 3
+
+```{r}
+#| label: ex3-setup
+# ---------------------------------------------------------------
+# CHANGE THIS: replace 00 with the last two digits of your
+# student ID, e.g. if your ID ends ...2107, use student_id <- 7
+# ---------------------------------------------------------------
+student_id <- 00
+set.seed(student_id)
+
+n <- sample(40:80, 1)
+model_choice <- student_id %% 3
+
+g <- switch(model_choice + 1,
+  play_erdos_renyi(n, p = runif(1, 0.03, 0.08), directed = FALSE),
+  play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE),
+  play_smallworld(n_dim = 1, dim_size = n, order = 3, p = runif(1, 0.01, 0.05))
+) |>
+  activate(nodes) |>
+  mutate(degree = centrality_degree())
+
+g
+```
+
+### Question
+
+> YOUR QUESTION HERE
+
+### Introduction
+
+> YOUR INTRODUCTION HERE
+
+### Approach
+
+> YOUR APPROACH HERE
+
+### Analysis
+
+```{r}
+#| label: ex3-wrangling
+
+# resampling / simulation code here (at least two dplyr verbs)
+```
+
+```{r}
+#| label: ex3-chart
+
+# chart code here
+```
+
+### Discussion
+
+> YOUR DISCUSSION HERE
+
+## Reflection
+
+1. *(Which of simulation/uncertainty/network thinking did you find hardest, and why?)* YOUR ANSWER HERE
+
+2. *(An example where seeing the full distribution changed your interpretation, vs a "dynamite plot")* YOUR ANSWER HERE
+
+3. *(Which Weeks 5-7 concept would you like to understand more deeply, and why?)* YOUR ANSWER HERE
