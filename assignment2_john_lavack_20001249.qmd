@@ -8,7 +8,7 @@ embed-resources: true
 project:
   execute:
     # dir: document
-  type: document
+  type: website
 execute:
   dir: project
   echo: true
@@ -53,7 +53,7 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 ```{r exercise 1, question 1}
 #| label: ex1-q1
 
-#To answer this I will do a ribbon plot. Grouping the data by diet.
+# To answer this I will do a ribbon plot. Grouping the data by diet.
 # This will use geom_lineribbon from ggdist
 
 Q1_data <- as.data.frame(ChickWeight)
@@ -127,10 +127,23 @@ Q1_data %>%
 
 ### Question 2: Which diet(s) have an unusual distribution of day-21 weights?
 
+A chart built only from means and intervals can hide a lot about a diet’s distribution. Which diet(s), if any, have an unusual (skewed, bimodal, or unusually variable) distribution of day-21 weights that a bar-and-error-bar chart would disguise?
+
+Your chart must show the full shape of each diet’s distribution (e.g. violin or quantile dotplot), not just a summary statistic.
+Your chart must overlay the raw data points.
+Your chart must include an annotation that identifies whichever diet(s) you consider unusual (or clearly indicates that none are).
 ```{r}
 #| label: ex1-q2
 
-# your wrangling + chart code here
+# I will answer this with a rain cloud plot from gg dist. 
+#this will show the desnity on top with the point beneath
+
+Q1_data %>%
+  filter(Time == 21) %>%
+  ggplot(aes(x = Diet, y = weight, col = Diet)) +
+  geom_point(position = position_jitter(width = 0.15), alpha = 0.6) +
+  geom_violin(fill = NA, linewidth = 0.6, col = 'black')
+
 ```
 
 ## Exercise 2
