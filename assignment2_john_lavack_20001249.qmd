@@ -56,41 +56,53 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 
 ```{r}
 
-
+# wrangling
 Q1_data %>% 
   group_by(Diet) %>%
   summarise(df = n() -1,
             mu = mean(weight),
             sigma = sd(weight) / sqrt(n())
             ) %>%
+  #Plotting geoms
   ggplot(aes(y = Diet, 
              #small sample size, use t dist, gives a bit wider tails, less certainty
              xdist = dist_student_t(
                df = df, mu = mu, sigma = sigma))
          ) +
   stat_interval(
+    mapping = aes(fill = after_stat(level)),
     .width = c(0.50, 0.80, 0.95),
     show_point = TRUE
   ) +
   #Scale commands
   scale_color_manual(values = custom_palette) +
+  # guides(colour = 'none') +
   scale_y_discrete(
     limits = rev(levels(Q1_data$Diet)),
     labels = ~paste0("Diet ", .)
-    ) +
+  ) +
+  scale_x_continuous(
+    breaks = seq(
+      from = min(Q1_data$weight),
+      to = max(Q1_data$weight),
+      by = 20)
+  ) +
   #Labels
   labs(title = 'Confidence intervals for chick weight widen as chicks age',
      subtitle = 'As diets increase weight gain, their confidence intervals also widen',
      fill = 'Confidence Interval',
      y = "",
-     x = "Mean Chick Weight (grams)") +
+     x = "Mean Chick Weight (grams)",
+     colour = "Confidence Interval") +
   #themes
   theme_minimal() +
   theme(legend.position = 'top',
-        legend.title = 'Confidence Interval',
+        # legend.title = 'Confidence Interval',
         plot.title = element_text(size = 15),
         axis.title.x = element_text(margin = margin(t = 10)),
-        axis.title.y = element_text(margin = margin(r = 10)))
+        axis.title.y = element_text(margin = margin(r = 10)),
+        panel.grid.major.y = element_blank()
+  )
 
 ```
 
@@ -244,13 +256,13 @@ Q1_data %>%
   scale_y_discrete(
     limits = rev(levels(Q1_data$Diet)),
     labels = ~paste0("Diet ", .)
-    ) +
+  ) +
   scale_x_continuous(
     breaks = seq(
       from = min(Q1_data$weight),
       to = max(Q1_data$weight),
       by = 20)
-      ) +
+  ) +
   #labels
   labs(
     title = 'Day 21 chick weights vary greatly by diet',
