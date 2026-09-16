@@ -251,7 +251,7 @@ g <- as_tbl_graph(edge_weights, directed = FALSE) |>
   mutate(degree = centrality_degree())
 ```
 
-```{r, eval = F}
+```{r exercise 2 graph, eval = F}
 #| label: ex2-chart
 #| fig-width: 9
 #| fig-height: 6
@@ -267,9 +267,25 @@ ggraph(g, layout = "kk") +
   geom_node_point(aes(colour = degree), size = 4) +
   #Scale commands
   scale_colour_viridis_c() +
+  #labels
+  labs(
+    title = "Highschool friendship network: edge width = years friendship reported",
+    subtitle = "Node colour = degree (number of distinct friends nominated across both years)",
+    colour = "Node\ndegree",
+    edge_width = "Years\nfriendship\nreported",
+  ) +
+    #guides ordering
+  guides(
+    colour     = guide_colorbar(order = 1),  
+    edge_width = guide_legend(order = 2)  
+  ) +
+  # themes
   theme_void() +
   theme(
-    legend.position = "bottom"
+    legend.position = "bottom",
+    plot.margin = margin(10,10,10,10),
+    plot.title = element_text(size = 20),
+    plot.subtitle = element_text(size = 10, margin = margin(t=5, b=15))
   )
 ```
 
