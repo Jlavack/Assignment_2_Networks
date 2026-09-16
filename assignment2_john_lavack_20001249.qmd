@@ -54,15 +54,21 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 
 ### Question 1: Which diet produces the heaviest chicks by day 21?
 
-```{r}
+```{r exercise1 q1}
+#| fig-width: 10
+#| fig-height: 6
+
 
 # wrangling
-Q1_data %>% 
+Q1_data_CI <- Q1_data %>% 
   group_by(Diet) %>%
   summarise(df = n() -1,
+            n = n(), 
             mu = mean(weight),
             sigma = sd(weight) / sqrt(n())
-            ) %>%
+            ) 
+
+Q1_data_CI %>%
   #Plotting geoms
   ggplot(aes(y = Diet, 
              #small sample size, use t dist, gives a bit wider tails, less certainty
@@ -71,7 +77,7 @@ Q1_data %>%
          ) +
   stat_interval(
     mapping = aes(fill = after_stat(level)),
-    .width = c(0.50, 0.80, 0.95),
+    .width = c(0.50, 0.80, 0.95, 0.99),
     show_point = TRUE
   ) +
   #Scale commands
@@ -79,17 +85,17 @@ Q1_data %>%
   # guides(colour = 'none') +
   scale_y_discrete(
     limits = rev(levels(Q1_data$Diet)),
-    labels = ~paste0("Diet ", .)
+    labels = ~paste0("Diet ", ., ' (n =', Q1_data_CI$n,')')
   ) +
   scale_x_continuous(
     breaks = seq(
-      from = min(Q1_data$weight),
-      to = max(Q1_data$weight),
+      from = 120,
+      to = 360,
       by = 20)
   ) +
   #Labels
-  labs(title = 'Confidence intervals for chick weight widen as chicks age',
-     subtitle = 'As diets increase weight gain, their confidence intervals also widen',
+  labs(title = 'Diet 3 has highest mean chick weight gain 21 days after hatching',
+     subtitle = "It's wide confidence interval implies high variability, across the low sample size",
      fill = 'Confidence Interval',
      y = "",
      x = "Mean Chick Weight (grams)",
