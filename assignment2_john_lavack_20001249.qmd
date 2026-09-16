@@ -237,8 +237,9 @@ Q1_data %>%
 
 *(no more than 3 sentences)*
 
-> YOUR ANSWER HERE
-
+First, the raw graph data is wrangled to have one row per unique edge using `count()` (aka single weighted edge pair), which is effectively `group_by(to, from) %>% summarise(weight = n())` and shows us if a student has a friend in one or both years (weight 1 and weight 2 respectively).  
+Next the data is converted to an object tidygraph can use, which treats relationships as symmetric (not directed), so we are assuming friendship is mutual.  
+Lastly it creates degree as the number of connections each node has using `centrality_degree()`, which gives the ability to visualise how each student (node) has rated their friends over the two years of interest.  
 
 ### Part 2: Reproduce the chart
 
