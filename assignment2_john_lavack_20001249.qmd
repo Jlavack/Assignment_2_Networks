@@ -61,6 +61,7 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 Q1_data <- as.data.frame(ChickWeight)
 
 Q1_data %>%
+  # filter(Time == 21) %>%
   group_by(Diet, Time) %>%
   #create formula components for CIs
   summarise(
@@ -129,11 +130,6 @@ Q1_data %>%
 
 ### Question 2: Which diet(s) have an unusual distribution of day-21 weights?
 
-A chart built only from means and intervals can hide a lot about a diet’s distribution. Which diet(s), if any, have an unusual (skewed, bimodal, or unusually variable) distribution of day-21 weights that a bar-and-error-bar chart would disguise?
-
-Your chart must show the full shape of each diet’s distribution (e.g. violin or quantile dotplot), not just a summary statistic.
-Your chart must overlay the raw data points.
-Your chart must include an annotation that identifies whichever diet(s) you consider unusual (or clearly indicates that none are).
 ```{r exercise 1 graph 2}
 #| label: ex1-q2
 #| fig-width: 10
@@ -143,7 +139,7 @@ Your chart must include an annotation that identifies whichever diet(s) you cons
 # I will answer this with a rain cloud plot from gg dist. 
 #this will show the desnity on top with the point beneath
 
-widths = c(0.5, 0.8, 0.95)
+widths = c(0.5, 0.8, 0.95, 1)
 mean_chick_weight <- Q1_data %>% filter(Time == 21) %>% summarise(x = round(mean(weight), 2))
 
 #little data pret
@@ -240,9 +236,10 @@ Q1_data %>%
 
 > YOUR ANSWER HERE
 
+
 ### Part 2: Reproduce the chart
 
-```{r}
+```{r exercise 2 wrangling code}
 #| label: ex2-wrangling
 data(highschool, package = "ggraph")
 
@@ -262,12 +259,22 @@ g <- as_tbl_graph(edge_weights, directed = FALSE) |>
 # modify this code to reproduce the target chart
 # change the eval option of this chunk to execute it, once you 
 # have put adequate values instead of the "??" below
-set.seed(??)
-ggraph(g, layout = "??") +
-  geom_edge_link(aes(width = ??), alpha = ??) +
-  geom_node_point(aes(colour = ??), size = ??) +
-  theme_void()
+set.seed(1)
+ggraph(g, layout = "kk") +
+  geom_edge_link(aes(width = weight), alpha = 0.6, color = "#676767") +
+  #control size of the lines
+  scale_edge_width(range = c(0.3, 2.5)) +
+  geom_node_point(aes(colour = degree), size = 4) +
+  #Scale commands
+  scale_colour_viridis_c() +
+  theme_void() +
+  theme(
+    legend.position = "bottom"
+  )
 ```
+
+
+
 
 ## Exercise 3
 
