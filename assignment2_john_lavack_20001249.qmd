@@ -28,12 +28,12 @@ library(ggdist)
 
 ```{r}
 custom_palette <- c(
-  "#18171e",
   "#a13939", 
   "#967348", 
   "#a59860", 
   "#5a903f", 
-  "#285c50"
+  "#285c50",
+  "#18171e"
   )
 ```
 
@@ -98,7 +98,7 @@ Q1_data %>%
                   linewidth = 0.8) +
   facet_wrap(~ Diet, labeller = labeller(Diet = ~ paste("Diet", .))) +
   #Scale related commands
-  scale_color_manual(values = custom_palette) +
+  # scale_color_manual(values = custom_palette) +
   #custom fill based off custom palette
   scale_fill_manual(values = c("95" = "#94AEA8", 
                                "80" = "#5E857C", 
@@ -150,48 +150,73 @@ Q1_data %>%
 
 ```{r}
 #| fig-width: 10
-#| fig-height: 6
+#| fig-height: 8
 
 
 widths = c(0.5, 0.8, 0.95)
+mean_chick_weight <- Q1_data %>% filter(Time == 21) %>% summarise(x = round(mean(weight), 2))
 
+#little data pret
 Q1_data %>%
   filter(Time == 21) %>%
+  #graph geoms
+    #hdensity
   ggplot(aes(y = Diet, x = weight, fill = Diet)) +
-  # stat_interval(
-  #   mapping = aes(fill_ramp = after_stat(level)),
-  #   .width = widths) +
   stat_halfeye(
     mapping = aes(fill_ramp = after_stat(level)),
     fill_type = "segments",
     .width = widths,
-    alpha = 0.5,
     show.legend = TRUE,
-    col = 'black'
+    col = NA,
+    scale = 0.8 #shrinking to find best ook without overlap
   ) +
+    #make it rain!
   stat_dotsinterval(
     mapping = aes(fill_ramp = after_stat(level)),
     .width = widths,
     side = 'bottom',
     layout = 'weave',
-    scale = 1,
+    scale = 0.7,
     slab_linewidth = NA,
+    col = NA,
     show.legend = FALSE,
-    quantiles = 50
+    quantiles = 100 #each dot represents a part of a chick, made it like this to see the distribution unsmoothed better
+  ) +
+    #add a dot at the mean
+  stat_summary(geom = "point", fun = mean, col = '#18171e', size = 3) +
+    #add the vertical line for overall mean
+  geom_vline(xintercept = mean_chick_weight$x, col = '#18171e', lty = 'dashed', linewidth = 1) +
+    #annotation
+  annotate("text",
+           x = 225,
+           y = 4.7, #y_levels[4],
+           label = paste0("Pooled mean = ", mean_chick_weight$x),
+           size = 5, 
+           hjust = -0.05
   ) +
   #scale commands
-  scale_y_discrete(
-    limits = rev(levels(Q1_data$Diet)),
-    labels = ~paste0("Diet ", .)
-    ) +
-  # scale_color_manual(values = custom_palette) +
+    #colour & legend
+  scale_fill_manual(values = custom_palette) +
   scale_fill_ramp_discrete(
     from = "white",
     na.translate = FALSE
   ) +
   guides(fill = "none", width = "none") +
+    # axis
+  scale_y_discrete(
+    limits = rev(levels(Q1_data$Diet)),
+    labels = ~paste0("Diet ", .)
+    ) +
+  scale_x_continuous(
+    breaks = seq(
+      from = min(Q1_data$weight),
+      to = max(Q1_data$weight),
+      by = 20)
+      ) +
   #labels
   labs(
+    title = '',
+    subtitle = 'Diet 1 has the lightest chicks by day 21', 
     y = "",
     x = "Chick Weight (grams)"
   ) +
@@ -200,7 +225,8 @@ Q1_data %>%
   theme(
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 12, margin = margin(t = 10)),
-    axis.text.x = element_text(size = 10)
+    axis.text.x = element_text(size = 10),
+    panel.grid.major.y = element_blank()
   )
   
   
