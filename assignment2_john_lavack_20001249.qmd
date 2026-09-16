@@ -8,7 +8,7 @@ embed-resources: true
 project:
   execute:
     # dir: document
-  type: website
+    type: website
 execute:
   dir: project
   echo: true
@@ -16,7 +16,7 @@ execute:
   message: false
 ---
 
-```{r libraries, warning=FALSE, echo = FALSE}
+```{r libraries, warning=FALSE, message = FALSE}
 #| label: setup
 library(ggplot2)
 library(dplyr)
@@ -52,6 +52,8 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 
 ```{r exercise 1, question 1}
 #| label: ex1-q1
+#| fig-width: 10
+#| fig-height: 6
 
 # To answer this I will do a ribbon plot. Grouping the data by diet.
 # This will use geom_lineribbon from ggdist
@@ -92,8 +94,8 @@ Q1_data %>%
   #this I found at https://mjskay.github.io/ggdist/articles/lineribbon.html
   geom_lineribbon(aes(ymin = .lower, ymax = .upper, fill = .width), 
                   col = '#a13939',
-                  alpha = 0.5,
-                  linewidth = 0.7) +
+                  alpha = 0.4,
+                  linewidth = 0.8) +
   facet_wrap(~ Diet, labeller = labeller(Diet = ~ paste("Diet", .))) +
   #Scale related commands
   scale_color_manual(values = custom_palette) +
@@ -145,6 +147,65 @@ Q1_data %>%
   geom_violin(fill = NA, linewidth = 0.6, col = 'black')
 
 ```
+
+```{r}
+#| fig-width: 10
+#| fig-height: 6
+
+
+widths = c(0.5, 0.8, 0.95)
+
+Q1_data %>%
+  filter(Time == 21) %>%
+  ggplot(aes(y = Diet, x = weight, fill = Diet)) +
+  # stat_interval(
+  #   mapping = aes(fill_ramp = after_stat(level)),
+  #   .width = widths) +
+  stat_halfeye(
+    mapping = aes(fill_ramp = after_stat(level)),
+    fill_type = "segments",
+    .width = widths,
+    alpha = 0.5,
+    show.legend = TRUE,
+    col = 'black'
+  ) +
+  stat_dotsinterval(
+    mapping = aes(fill_ramp = after_stat(level)),
+    .width = widths,
+    side = 'bottom',
+    layout = 'weave',
+    scale = 1,
+    slab_linewidth = NA,
+    show.legend = FALSE,
+    quantiles = 50
+  ) +
+  #scale commands
+  scale_y_discrete(
+    limits = rev(levels(Q1_data$Diet)),
+    labels = ~paste0("Diet ", .)
+    ) +
+  # scale_color_manual(values = custom_palette) +
+  scale_fill_ramp_discrete(
+    from = "white",
+    na.translate = FALSE
+  ) +
+  guides(fill = "none", width = "none") +
+  #labels
+  labs(
+    y = "",
+    x = "Chick Weight (grams)"
+  ) +
+  #themes
+  theme_minimal() +
+  theme(
+    axis.text.y = element_text(size = 15),
+    axis.title.x = element_text(size = 12, margin = margin(t = 10)),
+    axis.text.x = element_text(size = 10)
+  )
+  
+  
+```
+
 
 ## Exercise 2
 
