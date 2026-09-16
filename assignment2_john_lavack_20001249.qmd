@@ -166,9 +166,9 @@ Q1_data %>%
     mapping = aes(fill_ramp = after_stat(level)),
     fill_type = "segments",
     .width = widths,
-    show.legend = TRUE,
+    show.legend = c(size = FALSE, fill_ramp = TRUE),
     col = NA,
-    scale = 0.8 #shrinking to find best ook without overlap
+    scale = 0.8 #shrinking to find best look without overlap
   ) +
     #make it rain!
   stat_dotsinterval(
@@ -189,10 +189,16 @@ Q1_data %>%
     #annotation
   annotate("text",
            x = 225,
-           y = 4.7, #y_levels[4],
+           y = 4.7, 
            label = paste0("Pooled mean = ", mean_chick_weight$x),
            size = 5, 
            hjust = -0.05
+  ) +
+  annotate("text",
+         x = 150,
+         y = 1, 
+         label = "Diet 4 is right skewed. \nMany chicks are at the lightest extreme \nof the distribution \nand many at the mean.",
+         size = 3
   ) +
   #scale commands
     #colour & legend
@@ -201,7 +207,7 @@ Q1_data %>%
     from = "white",
     na.translate = FALSE
   ) +
-  guides(fill = "none", width = "none") +
+  guides(fill = "none", fill_ramp = guide_legend(title = "interval")) +
     # axis
   scale_y_discrete(
     limits = rev(levels(Q1_data$Diet)),
@@ -215,18 +221,21 @@ Q1_data %>%
       ) +
   #labels
   labs(
-    title = '',
-    subtitle = 'Diet 1 has the lightest chicks by day 21', 
+    title = 'Day 21 chick weights vary greatly by diet',
+    subtitle = 'Diet 1 has the lightest chicks on average by day 21', 
     y = "",
     x = "Chick Weight (grams)"
   ) +
   #themes
   theme_minimal() +
   theme(
+    plot.title = element_text(size = 20),
+    plot.subtitle = element_text(size = 15),
     axis.text.y = element_text(size = 15),
     axis.title.x = element_text(size = 12, margin = margin(t = 10)),
     axis.text.x = element_text(size = 10),
-    panel.grid.major.y = element_blank()
+    panel.grid.major.y = element_blank(),
+    legend.position = 'top'
   )
   
   
