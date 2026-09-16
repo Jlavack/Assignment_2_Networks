@@ -24,6 +24,7 @@ library(tidygraph)
 library(ggraph)
 library(tidyverse)
 library(ggdist)
+library(distributional)
 #Uncomment and run if required for exercise 2, question 2. I didn't have Calibri set up. 
 # library(showtext) 
 # library(sysfonts)
@@ -53,6 +54,47 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 
 ### Question 1: Which diet produces the heaviest chicks by day 21?
 
+```{r}
+
+
+Q1_data %>% 
+  group_by(Diet) %>%
+  summarise(df = n() -1,
+            mu = mean(weight),
+            sigma = sd(weight) / sqrt(n())
+            ) %>%
+  ggplot(aes(y = Diet, 
+             #small sample size, use t dist, gives a bit wider tails, less certainty
+             xdist = dist_student_t(
+               df = df, mu = mu, sigma = sigma))
+         ) +
+  stat_interval(
+    .width = c(0.50, 0.80, 0.95),
+    show_point = TRUE
+  ) +
+  #Scale commands
+  scale_color_manual(values = custom_palette) +
+  scale_y_discrete(
+    limits = rev(levels(Q1_data$Diet)),
+    labels = ~paste0("Diet ", .)
+    ) +
+  #Labels
+  labs(title = 'Confidence intervals for chick weight widen as chicks age',
+     subtitle = 'As diets increase weight gain, their confidence intervals also widen',
+     fill = 'Confidence Interval',
+     y = "",
+     x = "Mean Chick Weight (grams)") +
+  #themes
+  theme_minimal() +
+  theme(legend.position = 'top',
+        legend.title = 'Confidence Interval',
+        plot.title = element_text(size = 15),
+        axis.title.x = element_text(margin = margin(t = 10)),
+        axis.title.y = element_text(margin = margin(r = 10)))
+
+```
+
+
 ```{r exercise 1, question 1}
 #| label: ex1-q1
 #| fig-width: 10
@@ -60,8 +102,9 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 
 # To answer this I will do a ribbon plot. Grouping the data by diet.
 # This will use geom_lineribbon from ggdist
+# change this to a interval plot showing CI
 
-Q1_data <- as.data.frame(ChickWeight)
+Q1_data <- as.data.frame(ChickWeight) %>% filter(Time == 21)
 
 Q1_data %>%
   # filter(Time == 21) %>%
@@ -255,8 +298,6 @@ g <- as_tbl_graph(edge_weights, directed = FALSE) |>
   mutate(degree = centrality_degree())
 ```
 
-
-
 ```{r adding calibri if requried, echo = FALSE}
 # font_add("Calibri", "C:/Windows/Fonts/calibri.ttf")
 # 
@@ -317,7 +358,7 @@ ggraph(g, layout = "kk") +
 # CHANGE THIS: replace 00 with the last two digits of your
 # student ID, e.g. if your ID ends ...2107, use student_id <- 7
 # ---------------------------------------------------------------
-student_id <- 00
+student_id <- 49
 set.seed(student_id)
 
 n <- sample(40:80, 1)
