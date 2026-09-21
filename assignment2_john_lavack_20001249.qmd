@@ -26,8 +26,8 @@ library(tidyverse)
 library(ggdist)
 library(distributional)
 #Uncomment and run if required for exercise 2, question 2. I didn't have Calibri set up. 
-# library(showtext) 
-# library(sysfonts)
+library(showtext)
+library(sysfonts)
 ```
 
 ```{r}
@@ -122,7 +122,7 @@ Q1_data_CI %>%
 # This will use geom_lineribbon from ggdist
 # change this to a interval plot showing CI
 
-Q1_data <- as.data.frame(ChickWeight) %>% filter(Time == 21)
+Q1_data <- as.data.frame(ChickWeight)
 
 Q1_data %>%
   # filter(Time == 21) %>%
@@ -239,10 +239,28 @@ Q1_data %>%
     #annotation
   annotate("text",
            x = 225,
-           y = 4.7, 
+           y = 4.8, 
            label = paste0("Pooled mean = ", mean_chick_weight$x),
            size = 5, 
            hjust = -0.05
+  ) +
+  annotate("text",
+         x = 325,
+         y = 4.3, 
+         label = "Diet 1's multimodal distribution\n is hidden by the density curve",
+         size = 3
+  ) +
+  annotate("text",
+       x = 325,
+       y = 3.4, 
+       label = "Diet 2's mean falls between\n two peaks, indicating two clusters",
+       size = 3
+  ) +
+    annotate("text",
+         x = 100,
+         y = 2, 
+         label = "Diet 3's left skew shows a\n high level of heavier chicks",
+         size = 3
   ) +
   annotate("text",
          x = 150,
@@ -257,7 +275,7 @@ Q1_data %>%
     from = "white",
     na.translate = FALSE
   ) +
-  guides(fill = "none", fill_ramp = guide_legend(title = "interval")) +
+  guides(fill = "none", fill_ramp = guide_legend(title = "Confidence interval")) +
     # axis
   scale_y_discrete(
     limits = rev(levels(Q1_data$Diet)),
@@ -272,7 +290,7 @@ Q1_data %>%
   #labels
   labs(
     title = 'Day 21 chick weights vary greatly by diet',
-    subtitle = 'Diet 1 has the lightest chicks on average by day 21', 
+    subtitle = 'Diet 1 has the lightest chicks on average by day 21, Diet 4, the heaviest', 
     y = "",
     x = "Chick Weight (grams)"
   ) +
@@ -317,16 +335,16 @@ g <- as_tbl_graph(edge_weights, directed = FALSE) |>
 ```
 
 ```{r adding calibri if requried, echo = FALSE}
-# font_add("Calibri", "C:/Windows/Fonts/calibri.ttf")
-# 
-# font_add(
-#   family   = "Calibri",
-#   regular  = "calibri.ttf",
-#   bold     = "calibrib.ttf",
-#   italic   = "calibrii.ttf",
-#   bolditalic = "calibriz.ttf"
-# )
-# showtext_auto()
+font_add("Calibri", "C:/Windows/Fonts/calibri.ttf")
+
+font_add(
+  family   = "Calibri",
+  regular  = "calibri.ttf",
+  bold     = "calibrib.ttf",
+  italic   = "calibrii.ttf",
+  bolditalic = "calibriz.ttf"
+)
+showtext_auto()
 ```
 
 ```{r exercise 2 graph, eval = TRUE}
@@ -384,14 +402,50 @@ model_choice <- student_id %% 3
 
 g <- switch(model_choice + 1,
   play_erdos_renyi(n, p = runif(1, 0.03, 0.08), directed = FALSE),
-  play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE),
+  play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE), #this is my one
   play_smallworld(n_dim = 1, dim_size = n, order = 3, p = runif(1, 0.01, 0.05))
 ) |>
   activate(nodes) |>
-  mutate(degree = centrality_degree())
+  mutate(degree = centrality_degree(),
+         betweenness = centrality_betweenness(),
+         component = as.factor(group_components()))
 
 g
 ```
+
+```{r}
+#stress and KK were similar in look, but kk is the easier one to read.
+ggraph(g, layout = "stress") +
+  geom_edge_link( alpha = 0.5, color = "#676767") + #used a colour picker
+  #control size of the lines
+  # scale_edge_width(range = c(0.3, 2)) +
+  geom_node_point(aes(colour = degree), size = 4) +
+  #Scale commands
+  scale_colour_viridis_c() +
+  #labels
+  # labs(
+  #   title = "Highschool friendship network: edge width = years friendship reported",
+  #   subtitle = "Node colour = degree (number of distinct friends nominated across both years)",
+  #   colour = "Node\ndegree",
+  #   edge_width = "Years\nfriendship\nreported",
+  # ) +
+    #guides ordering
+  # guides(
+  #   colour     = guide_colorbar(order = 1),  
+  #   edge_width = guide_legend(order = 2)  
+  # ) +
+  # themes
+    #Font looks like calibri?. 
+  theme_graph(base_family = "Calibri") +
+  theme(
+    legend.position = "bottom",
+    plot.margin = margin(10,10,10,10),
+    plot.title = element_text(size = 28, face = 'plain'),
+    plot.subtitle = element_text(size = 18, margin = margin(t=0, b=15))
+  )
+
+```
+
 
 ### Question
 
