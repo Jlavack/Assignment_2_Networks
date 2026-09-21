@@ -502,25 +502,36 @@ A process of preferential attachment. Resampling the same graph/nodes with repla
 
 # resampling / simulation code here (at least two dplyr verbs)
 
-Q3_data <- function(n, B) {
+Q3_data <- function(n, B = 1000) {
+  replicate(B, {
+    graph_model <- play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE) 
+    
+    node_btwn <- graph_model %>%
+      activate(nodes) %>%
+      mutate(degree = centrality_degree(), 
+             betweenness = centrality_betweenness(directed = FALSE)) %>%
+      summarise(mean_node_betweenness = mean(betweenness)) %>%
+      pull()
+    
+    edge_btwn <- graph_model %>%
+      activate(edges) %>%
+      mutate(edge_betweenness = centrality_edge_betweenness(directed = FALSE)) %>%
+      summarise(mean_edge_betweenness = mean(edge_betweenness)) %>%
+      pull()
+    
+    c(node = node_btwn, edge = edge_btwn)
+  }) %>%
+    as.data.frame() %>%
+    rownames_to_column("replication")
   #create the graph process. Code from set up
-  graph_model <- play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE) 
   #create the graph tibble
-  graph_table <- graph_movel %>%
-    activate(nodes) %>%
-    mutate(degree = centrality_degree(),
-           betweenness = centrality_betweenness(directed = FALSE)) %>%
-    summarise(mean_node_betweenness = mean(betweenness))
-    activate(deges) %>%
+  graph_table <- 
+    activate(edges) %>%
     mutate(edge_betweenness = centrality_edge_betweenness(directed = FALSE)) %>%
     summarise(mean_edge_betweenness = mean(edge_betweenness))
-  
-# got to wrap this in replicate....
-  
-
 }
 
-Q3_data(g, n)
+Q3_data(n, B=10)
 ```
 
 ```{r}
