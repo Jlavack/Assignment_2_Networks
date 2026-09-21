@@ -492,7 +492,8 @@ How often each edge lies on a shortest path between other pairs.
 
 To analyse the summary statistic parametric resampling will be applied - bootstrapping using the same parameters. 
 This is the appropriate choice because with a Barabasi-Albert graph, the final graph is the end result of a stochastic process which grows stepwise through time.
-A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.   
+A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.
+Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. 
 
 
 ### Analysis
@@ -504,6 +505,7 @@ A process of preferential attachment. Resampling the same graph/nodes with repla
 
 Q3_data <- function(n, B = 1000) {
   replicate(B, {
+    #create graph process
     graph_model <- play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE) 
     
     node_btwn <- graph_model %>%
@@ -523,17 +525,29 @@ Q3_data <- function(n, B = 1000) {
     
     c(node = node_btwn, edge = edge_btwn)
   }) %>%
+    #make data frame
     t() %>%
     as.data.frame() %>%
-    rownames_to_column("replication")   #create the graph process. Code from set up
-  #create the graph tibble
+    rownames_to_column("replication")
 }
-
+  
 ```
 
 ```{r}
 #| label: ex3-chart
 
+Q3_graph_data <- Q3_data(n, 1000) 
+
+Q3_graph_data %>%
+  pivot_longer(cols = c(node, edge), names_to = "type", values_to = "betweenness") %>%
+  ggplot(aes(x = betweenness, fill = type)) +
+  geom_histogram(bins = 50, alpha = 0.4) +
+  theme_minimal()
+
+Q3_graph_data %>%
+  pivot_longer(cols = c(node, edge), names_to = "type", values_to = "betweenness") %>%
+  group_by(replication, type) %>%
+  mutate()
 # chart code here
 ```
 
