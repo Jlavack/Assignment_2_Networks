@@ -371,7 +371,7 @@ ggraph(g, layout = "kk") +
   ) +
     #guides ordering
   guides(
-    colour     = guide_colorbar(order = 1),  
+    colour = guide_colorbar(order = 1),  
     edge_width = guide_legend(order = 2)  
   ) +
   # themes
@@ -408,10 +408,12 @@ g <- switch(model_choice + 1,
 ) |>
   activate(nodes) |>
   mutate(degree = centrality_degree(),
-         betweenness = centrality_betweenness(),
+         betweenness = centrality_betweenness(directed = FALSE),
          )
 
 g
+
+local_c <- transitivity(g, type = "local", isolates = 'zero') #all 0, pointless. 
 
 #some summary stats. This is a rich get richer one. With no triangles. No looping, only linear paths
 tibble(
@@ -424,40 +426,39 @@ tibble(
   components = components(g)$no,
   max_degree = max(degree(g)),
   min_degree = min(degree(g)),
-  betweeness = mean(betweenness(g)) #high, because BA has hubs that lots of traffic goes through
+  betweeness = mean(betweenness(g, directed = FALSE)) #high, because BA has hubs that lots of traffic goes through
 )
+
+
 ```
 
 ```{r}
 #stress and KK were similar in look, but kk is the easier one to read.
 #try directed, try weights on edges. 
-ggraph(g, layout = "stress") +
+ggraph(g, layout = "kk") +
   geom_edge_link( alpha = 0.5, color = "#676767") + #used a colour picker
-  #control size of the lines
-  # scale_edge_width(range = c(0.3, 2)) +
-  geom_node_point(aes(colour = degree), size = 4) +
+  geom_node_point(aes(colour = betweenness, size = degree)) +
   #Scale commands
   scale_colour_viridis_c() +
   #labels
-  # labs(
-  #   title = "Highschool friendship network: edge width = years friendship reported",
-  #   subtitle = "Node colour = degree (number of distinct friends nominated across both years)",
-  #   colour = "Node\ndegree",
-  #   edge_width = "Years\nfriendship\nreported",
-  # ) +
-    #guides ordering
-  # guides(
-  #   colour     = guide_colorbar(order = 1),  
-  #   edge_width = guide_legend(order = 2)  
-  # ) +
+  labs(
+    title = "Preferential attachment graph",
+    subtitle = "Each node represents an individual, each edge, contact between two.",
+    size = "Node\ndegree",
+    colour = "Path\nbetweenness",
+  ) +
+  # guides ordering
+  guides(
+    colour = guide_colorbar(order = 1),
+    degree = guide_legend(order = 2)
+  ) +
   # themes
-    #Font looks like calibri?. 
   theme_graph(base_family = "Calibri") +
   theme(
     legend.position = "bottom",
     plot.margin = margin(10,10,10,10),
     plot.title = element_text(size = 28, face = 'plain'),
-    plot.subtitle = element_text(size = 18, margin = margin(t=0, b=15))
+    plot.subtitle = element_text(size = 15, margin = margin(t=0, b=15))
   )
 
 ```
@@ -465,7 +466,7 @@ ggraph(g, layout = "stress") +
 
 ### Question
 
-> YOUR QUESTION HERE
+How does average betweenness of this graph vary under resampling?. 
 
 ### Introduction
 
@@ -474,6 +475,13 @@ ggraph(g, layout = "stress") +
 ### Approach
 
 > YOUR APPROACH HERE
+
+Note to self: betweenness is a measure of traffic of shortest paths passing through the node. How often each edge lies on a shortest path between other pairs.
+
+To analyse the summary statistic parametric resampling will be applied - bootstrapping using the same parameters. 
+This is the appropriate choice because with a Barabasi-Albert graph, the final graph is the end result of a stochastic process which grows stepwise through time.
+A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.   
+
 
 ### Analysis
 
