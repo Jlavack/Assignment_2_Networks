@@ -628,7 +628,7 @@ Q3_graph_data %>%
     x = ""
   ) +
   #themes
-  theme_minimal() +
+  theme_minimal(base_family = "Calibri") +
   theme(
     plot.title = element_text(size = 20),
     plot.subtitle = element_text(size = 15),
