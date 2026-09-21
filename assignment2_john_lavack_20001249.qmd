@@ -25,6 +25,7 @@ library(ggraph)
 library(tidyverse)
 library(ggdist)
 library(distributional)
+library(igraph)
 #Uncomment and run if required for exercise 2, question 2. I didn't have Calibri set up. 
 library(showtext)
 library(sysfonts)
@@ -408,14 +409,23 @@ g <- switch(model_choice + 1,
   activate(nodes) |>
   mutate(degree = centrality_degree(),
          betweenness = centrality_betweenness(),
-         component = as.factor(group_components()))
+         )
 
 g
 
-edge_weights <- g %>%
-  activate(edges) %>%
-  as_tibble() %>%
-  count(from, to, name = "weight")
+#some summary stats. This is a rich get richer one. With no triangles. No looping, only linear paths
+tibble(
+  density = edge_density(g), #will be low becuase of the bridging nature of BA graphs
+  n_nodes = vcount(g),
+  n_edges = ecount(g),
+  average_degree = mean(degree(g)), #mean of all vertices - should be sparser
+  clustering_coef = transitivity(g, type = "average"), #decays to 0, so no clustering is expected in BA
+  av_path_len = average.path.length(g, directed = FALSE, unconnected = TRUE),
+  components = components(g)$no,
+  max_degree = max(degree(g)),
+  min_degree = min(degree(g)),
+  betweeness = mean(betweenness(g)) #high, because BA has hubs that lots of traffic goes through
+)
 ```
 
 ```{r}
