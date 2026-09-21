@@ -411,6 +411,11 @@ g <- switch(model_choice + 1,
          component = as.factor(group_components()))
 
 g
+
+edge_weights <- g %>%
+  activate(edges) %>%
+  as_tibble() %>%
+  count(from, to, name = "weight")
 ```
 
 ```{r}
