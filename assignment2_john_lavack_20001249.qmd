@@ -37,8 +37,8 @@ custom_palette <- c(
   "#967348", 
   "#a59860", 
   "#5a903f", 
-  "#285c50",
-  "#18171e"
+  "#285c50"
+  # "#18171e"
   )
 ```
 
@@ -398,7 +398,7 @@ ggraph(g, layout = "kk") +
 student_id <- 49
 set.seed(student_id)
 
-n <- sample(40:80, 1)
+n <- sample(40:80, 1) #7-
 model_choice <- student_id %% 3
 
 g <- switch(model_choice + 1,
@@ -409,7 +409,9 @@ g <- switch(model_choice + 1,
   activate(nodes) |>
   mutate(degree = centrality_degree(),
          betweenness = centrality_betweenness(directed = FALSE),
-         )
+         ) |>
+  activate(edges) |>
+  mutate(edge_betweenness = centrality_edge_betweenness(directed = FALSE))
 
 g
 
@@ -426,31 +428,39 @@ tibble(
   components = components(g)$no,
   max_degree = max(degree(g)),
   min_degree = min(degree(g)),
-  betweeness = mean(betweenness(g, directed = FALSE)) #high, because BA has hubs that lots of traffic goes through
+  betweeness = mean(betweenness(g, directed = FALSE),), #high, because BA has hubs that lots of traffic goes through
+  edge_betweenness = mean(edge_betweenness(g, directed = FALSE))
 )
 
 
 ```
 
 ```{r}
+#| fig-width: 9
+#| fig-height: 6
+
 #stress and KK were similar in look, but kk is the easier one to read.
 #try directed, try weights on edges. 
 ggraph(g, layout = "kk") +
-  geom_edge_link( alpha = 0.5, color = "#676767") + #used a colour picker
+  geom_edge_link(aes(width = edge_betweenness), alpha = 0.4, color = "#676767") + 
+  scale_edge_width(range = c(0.5, 4),
+                   name = 'Edge\nbetweenness') +
   geom_node_point(aes(colour = betweenness, size = degree)) +
   #Scale commands
-  scale_colour_viridis_c() +
+  scale_colour_gradientn(colours = rev(custom_palette)) +
   #labels
   labs(
     title = "Preferential attachment graph",
-    subtitle = "Each node represents an individual, each edge, contact between two.",
+    subtitle = paste0("Each node represents an individual, each edge, contact between two.\nAverage betweenness = ", 
+                      round(mean(betweenness(g, directed = FALSE)),2)),
     size = "Node\ndegree",
-    colour = "Path\nbetweenness",
+    colour = "Node\nbetweenness"
   ) +
   # guides ordering
   guides(
     colour = guide_colorbar(order = 1),
-    degree = guide_legend(order = 2)
+    size = guide_legend(order = 2),
+    width = guide_legend(order = 3)
   ) +
   # themes
   theme_graph(base_family = "Calibri") +
@@ -458,7 +468,7 @@ ggraph(g, layout = "kk") +
     legend.position = "bottom",
     plot.margin = margin(10,10,10,10),
     plot.title = element_text(size = 28, face = 'plain'),
-    plot.subtitle = element_text(size = 15, margin = margin(t=0, b=15))
+    plot.subtitle = element_text(size = 12, margin = margin(t=0, b=15))
   )
 
 ```
@@ -476,7 +486,9 @@ How does average betweenness of this graph vary under resampling?.
 
 > YOUR APPROACH HERE
 
-Note to self: betweenness is a measure of traffic of shortest paths passing through the node. How often each edge lies on a shortest path between other pairs.
+Note to self: betweenness is a measure of traffic of shortest paths passing through the node. 
+How many shortest paths pass through the node
+How often each edge lies on a shortest path between other pairs.
 
 To analyse the summary statistic parametric resampling will be applied - bootstrapping using the same parameters. 
 This is the appropriate choice because with a Barabasi-Albert graph, the final graph is the end result of a stochastic process which grows stepwise through time.
@@ -489,6 +501,26 @@ A process of preferential attachment. Resampling the same graph/nodes with repla
 #| label: ex3-wrangling
 
 # resampling / simulation code here (at least two dplyr verbs)
+
+Q3_data <- function(n, B) {
+  #create the graph process. Code from set up
+  graph_model <- play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE) 
+  #create the graph tibble
+  graph_table <- graph_movel %>%
+    activate(nodes) %>%
+    mutate(degree = centrality_degree(),
+           betweenness = centrality_betweenness(directed = FALSE)) %>%
+    summarise(mean_node_betweenness = mean(betweenness))
+    activate(deges) %>%
+    mutate(edge_betweenness = centrality_edge_betweenness(directed = FALSE)) %>%
+    summarise(mean_edge_betweenness = mean(edge_betweenness))
+  
+# got to wrap this in replicate....
+  
+
+}
+
+Q3_data(g, n)
 ```
 
 ```{r}
