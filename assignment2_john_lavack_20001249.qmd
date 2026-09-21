@@ -553,7 +553,25 @@ Q3_graph_data %>%
 ```{r}
 Q3_graph_data %>%
   ggplot(aes(x = type, y = betweenness, col = type)) +
-  geom_point(position = position_jitter(width = 0.4))
+  geom_point(position = position_jitter(width = 0.35))
+
+means <- Q3_graph_data %>%
+  group_by(type) %>%
+  summarise(mean = mean(betweenness)) %>%
+  mutate(x = match(type, c("node", "edge")))
+
+
+Q3_graph_data %>%
+  mutate(type = match(type, c("node", "edge"))) %>%
+  ggplot(aes(x = type, y = betweenness, col = factor(type))) +
+  geom_point(position = position_jitter(width = 0.35)) +
+  geom_segment(data = means,
+               aes(x = x - 0.35, xend = x + 0.35, y = mean, yend = mean),
+               inherit.aes = FALSE,
+               linetype = "dashed", linewidth = 0.8) +
+  scale_x_continuous(breaks = 1:2, labels = c("node", "edge"), limits = c(0.5, 2.5))
+
+# id on't like, change to box plot?
 ```
 
 
@@ -563,22 +581,22 @@ widths = c(0.5, 0.8, 0.95)
 Q3_graph_data %>%
   #graph geoms
     #hdensity
-  ggplot(aes(y = type, x = betweenness, fill = type)) +
+  ggplot(aes(x = type, y = betweenness, fill = type)) +
   stat_halfeye(
     mapping = aes(fill_ramp = after_stat(level)),
     fill_type = "segments",
     .width = widths,
     show.legend = c(size = FALSE, fill_ramp = TRUE),
     col = NA,
-    scale = 0.8 #shrinking to find best look without overlap
+    scale = 0.5 #shrinking to find best look without overlap
   ) +
     #make it rain!
   stat_dotsinterval(
     mapping = aes(fill_ramp = after_stat(level)),
     .width = widths,
     side = 'bottom',
-    layout = 'weave',
-    scale = 0.7,
+    layout = 'bin',
+    scale = 0.4,
     slab_linewidth = NA,
     col = NA,
     show.legend = FALSE,
@@ -596,31 +614,27 @@ Q3_graph_data %>%
   ) +
   guides(fill = "none", fill_ramp = guide_legend(title = "Confidence interval")) +
     # axis
-  # scale_y_discrete(
-  #   limits = rev(levels(Q3_graph_data$betweenness)),
-  # ) +
-  # scale_x_continuous(
-  #   breaks = seq(
-  #     from = min(Q3_graph_data$betweenness),
-  #     to = max(Q3_graph_data$betweenness),
-  #     by = 20)
-  # ) +
+  scale_y_continuous(
+    breaks = seq(
+      from = round(min(Q3_graph_data$betweenness),0),
+      to = round(max(Q3_graph_data$betweenness),0),
+      by = 20)
+  ) +
   #labels
   labs(
-    title = 'Day 21 chick weights vary greatly by diet',
-    subtitle = 'Diet 1 has the lightest chicks on average by day 21, Diet 4, the heaviest', 
-    y = "",
-    x = "Chick Weight (grams)"
+    title = 'Mean betweenness from 1000 replications of the BA graph',
+    subtitle = 'Very similar', 
+    y = "Betweenness",
+    x = ""
   ) +
   #themes
   theme_minimal() +
   theme(
     plot.title = element_text(size = 20),
     plot.subtitle = element_text(size = 15),
-    axis.text.y = element_text(size = 15),
-    axis.title.x = element_text(size = 12, margin = margin(t = 10)),
-    axis.text.x = element_text(size = 10),
-    panel.grid.major.y = element_blank(),
+    axis.text.y = element_text(size = 10),
+    axis.title.y = element_text(size = 12, margin = margin(t = 10)),
+    axis.text.x = element_text(size = 15),
     legend.position = 'top'
   )
 
