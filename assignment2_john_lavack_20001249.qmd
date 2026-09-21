@@ -415,6 +415,7 @@ g
 
 ```{r}
 #stress and KK were similar in look, but kk is the easier one to read.
+#try directed, try weights on edges. 
 ggraph(g, layout = "stress") +
   geom_edge_link( alpha = 0.5, color = "#676767") + #used a colour picker
   #control size of the lines
