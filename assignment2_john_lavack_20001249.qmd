@@ -371,27 +371,31 @@ ggraph(g, layout = "kk") +
 
 ```
 
+```{r}
+g |> vcount()
+```
+
 
 ### Question
 
-How does average betweenness of this graph's node attachment vary under resampling?. 
+How does mean betweenness of this graph's node attachment vary under resampling?. 
 
 ### Introduction
 
 > YOUR INTRODUCTION HERE
 
+Barabasi-Albert graphs model preferential attachment processes. AKA a 'rich get richer' type processes, which is from the Bible, Matthew 25:29. These processes add nodes sequentially to the graph and join them with edges to existing nodes. Over repeated attachments, hubs are created and 'main paths' emerge. To those nodes that have, more will be attached and they will be attached in abundance. This sort of graph is not directed nor weighted, as each node is sequentially attached to one other node and 'communication' is two way. I.e. the hierarchy emerges in terms of hubs and paths, not by weights. The graph in this example has 70 nodes and 69 edges. For this graph the parameter for edges is set at the default of 2 resulting in fewer edges than nodes. The summary statistic of interest in this analysis is called betweenness. It measures the amount of shortest paths passing through the node. It is a measure of traffic and is a simple way to analyse the structure of the graph at a point in time and as nodes are added. 
+Barabasi-Albert graphs are known as 'scale-free' networks which means that most nodes have few connections and few have lots (power-law degree distribution). Making them useful for modelling networks such as the internet and social media. 
+
 ### Approach
 
 > YOUR APPROACH HERE
 
-Note to self: betweenness is a measure of traffic of shortest paths passing through the node. 
-How many shortest paths pass through the node
 
-
-To analyse the summary statistic parametric resampling will be applied - bootstrapping using the same parameters. 
+To analyse the summary statistic parametric resampling will be applied - recreating the graph using the same parameters. 
 This is the appropriate choice because with a Barabasi-Albert graph, the final graph is the end result of a stochastic process which grows stepwise through time.
 A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.
-Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. 
+Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. Because the graph is a process of sequential attachment, a ribbon plot showing betweenness as nodes are attached will reflect both the summary statistic and the structure of the graph. Next to this a raincloud chart can show the overall shape of the mean betweenness for each replicate graph.  
 
 ### Analysis
 
@@ -578,8 +582,11 @@ rain + ribbon +
 
 ## Reflection
 
-1. *(Which of simulation/uncertainty/network thinking did you find hardest, and why?)* YOUR ANSWER HERE
+1. *(Which of simulation/uncertainty/network thinking did you find hardest, and why?)* 
+None. I have studied each before and like them all, so the combination of them all was joyful. It brought back fond memories of the Bayesian course Matthieu taught, which was far and away the best course I have done. From an implementation of the thinking in code, resampling was the hardest. Simply because of the syntax. Here, in this assessment I ended up using lapply rather than replicate to get the resampling outcome I wanted. And figuring out which type of resampling to do for the process was a puzzle, but that doesn't mean it was hard, just enjoyable.
 
-2. *(An example where seeing the full distribution changed your interpretation, vs a "dynamite plot")* YOUR ANSWER HERE
+2. *(An example where seeing the full distribution changed your interpretation, vs a "dynamite plot")* 
+I get the sense that dynamite plots are in the same category as pie charts... so I haven't really been looking at many. The primary example that comes to mind is the one from lecture 6. Which was hardly revelatory. I do vaguely recall seeing one in a journal of medical science about psychiatry on the base rates of autism in the population over time. Diagnosis followed the DSM5 criteria. Which hadn't changed more than population growth would account for. This was about 2 years ago. Box plots for the same data were more revealing. At that point I wasn't thinking about this question though. So I wasn't being critical about the dynamite graph, I only thought it was kind of pointless and a table would have been just as good. In general, I suppose that were I to look at the dynamite plot, I'd compare it to other columns in the same chart and think of quantity. Depending on the scale, a small difference may visually appear large, and the narrower error bar would imply more accurate estimates. However, on that information alone, I may interpret that a large change has occurred. When seeing the distribution I may see that the means are closer than normal, and the shift is due to a tightening or widening of the sample range, more outliers, more point estimates or so on. So the main thing I'd realise is that the dynamite plot is not about quantity, and this would confuse me, since column charts are usually about counts by group. 
 
-3. *(Which Weeks 5-7 concept would you like to understand more deeply, and why?)* YOUR ANSWER HERE
+3. *(Which Weeks 5-7 concept would you like to understand more deeply, and why?)* 
+I could go in for networks all day. I think they are very interesting and full of Hungarian mathematicians, which is only a good thing. I have studied them briefly in Algebra, a little in artificial intelligence and machine learning with respect to solving puzzles and neural networks. I am familiar with the concept of a graph (and at work I sometimes get to play with neo4j, which is fun), but not the various species. Knowing more about them would be great! I'd take a whole paper on it! Why, specifically? They present another way to approach and solve problems which is another string to the bow. My interest is purely of the abstract kind. I don't care about the practical applications. They are interesting and fun. Which probably makes me sound dull... I have other hobbies I swear! 
