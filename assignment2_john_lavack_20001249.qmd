@@ -184,11 +184,11 @@ Q1_data %>%
         axis.title.y = element_text(margin = margin(r = 10)))
 
 #Tones for the fill
-# "#94AEA8"
-# "#5E857C"
-# "#285C50"
-# "#1E453C"
-# "#142E28"
+"#94AEA8"
+"#5E857C"
+"#285C50"
+"#1E453C"
+"#142E28"
 
 ```
 
@@ -495,56 +495,49 @@ This is the appropriate choice because with a Barabasi-Albert graph, the final g
 A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.
 Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. 
 
+```{r}
+g
+```
+
 
 ### Analysis
 
 ```{r}
 #| label: ex3-wrangling
 
-# resampling / simulation code here (at least two dplyr verbs)
+#Replicate the graph process B time for a graph with n nodes. 
+#Keep all the graph data, calculate the statistic for betweenness. Return as tibble.
+#use this to visualise charts to show structure of the BA graph.
 
 Q3_data <- function(n, B = 1000) {
-  replicate(B, {
+  lapply(seq_len(B), function(i) {
     #create graph process
-    graph_model <- play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE) 
+    graph_model <- play_barabasi_albert(n, power = runif(1, 0.8, 1.5), directed = FALSE)   
     
-    node_btwn <- graph_model %>%
+    graph_model %>%
       activate(nodes) %>%
-      mutate(degree = centrality_degree(), 
-             betweenness = centrality_betweenness(directed = FALSE)) %>%
+      mutate(node_id = 1:n, #get node ID for visualisation
+             betweenness = centrality_betweenness(directed = FALSE),
+             replication = i) %>% 
       as_tibble() %>%
-      summarise(mean_node_betweenness = mean(betweenness)) %>%
-      pull()
-    
-    edge_btwn <- graph_model %>%
-      activate(edges) %>%
-      mutate(edge_betweenness = centrality_edge_betweenness(directed = FALSE)) %>%
-      as_tibble() %>%
-      summarise(mean_edge_betweenness = mean(edge_betweenness)) %>%
-      pull()
-    
-    c(node = node_btwn, edge = edge_btwn)
+      select(replication, node_id, betweenness)
   }) %>%
-    #make data frame
-    t() %>%
-    as.data.frame() %>%
-    rownames_to_column("replication")
+    bind_rows()
 }
   
+
 ```
+
 
 ```{r}
 #| label: ex3-chart
 
 Q3_graph_data <- Q3_data(n, 1000) 
 
-Q3_graph_data <- Q3_graph_data %>%
-  pivot_longer(cols = c(node, edge), names_to = "type", values_to = "betweenness")
-
-
 Q3_graph_data %>%
-  # pivot_longer(cols = c(node, edge), names_to = "type", values_to = "betweenness") %>%
-  ggplot(aes(x = betweenness, fill = type)) +
+  group_by(replication) %>%
+  summarise(mean = mean(betweenness)) %>%
+  ggplot(aes(x = mean)) +
   geom_histogram(bins = 50, alpha = 0.4) +
   theme_minimal()
 
@@ -552,26 +545,13 @@ Q3_graph_data %>%
 
 ```{r}
 Q3_graph_data %>%
-  ggplot(aes(x = type, y = betweenness, col = type)) +
-  geom_point(position = position_jitter(width = 0.35))
-
-means <- Q3_graph_data %>%
-  group_by(type) %>%
+  group_by(replication) %>%
   summarise(mean = mean(betweenness)) %>%
-  mutate(x = match(type, c("node", "edge")))
+  ggplot(aes(x = 0, y = mean)) +
+  geom_point(position = position_jitter(width = 0.2), alpha = 0.4) +
+  geom_boxplot(fill = NA, col = 'black') 
 
 
-Q3_graph_data %>%
-  mutate(type = match(type, c("node", "edge"))) %>%
-  ggplot(aes(x = type, y = betweenness, col = factor(type))) +
-  geom_point(position = position_jitter(width = 0.35)) +
-  geom_segment(data = means,
-               aes(x = x - 0.35, xend = x + 0.35, y = mean, yend = mean),
-               inherit.aes = FALSE,
-               linetype = "dashed", linewidth = 0.8) +
-  scale_x_continuous(breaks = 1:2, labels = c("node", "edge"), limits = c(0.5, 2.5))
-
-# id on't like, change to box plot?
 ```
 
 
@@ -579,9 +559,11 @@ Q3_graph_data %>%
 widths = c(0.5, 0.8, 0.95)
 
 Q3_graph_data %>%
+  group_by(replication) %>%
+  summarise(betweenness = mean(betweenness)) %>%
   #graph geoms
     #hdensity
-  ggplot(aes(x = type, y = betweenness, fill = type)) +
+  ggplot(aes(x = 0, y = betweenness)) +
   stat_halfeye(
     mapping = aes(fill_ramp = after_stat(level)),
     fill_type = "segments",
@@ -640,6 +622,80 @@ Q3_graph_data %>%
 
 ```
 
+
+```{r spaghetti chart}
+
+#select 50 random graphs so the visualisation isn't impossible to read.
+df <- Q3_graph_data %>% 
+  filter(replication %in% sample(1:1000, 50))
+
+#create the max mean betweenness
+highlight <- Q3_graph_data %>%
+  group_by(replication) %>%
+  summarise(mean_btwn = mean(betweenness), .groups = "drop") %>%
+  slice_max(mean_btwn, n = 1) %>%
+  pull(replication)
+
+lowlight <- Q3_graph_data %>%
+  group_by(replication) %>%
+  summarise(mean_btwn = mean(betweenness), .groups = "drop") |>
+  slice_min(mean_btwn, n = 1) %>%
+  pull(replication)
+
+#I'm on a trend now...
+meanlight <- Q3_graph_data %>%
+  group_by(replication) %>%
+  summarise(mean_btwn = mean(betweenness), .groups = "drop") %>%
+  #rank them by closest to absolute mean, then pick the most average
+  arrange(abs(mean_btwn - mean(mean_btwn))) %>%
+  slice_head(n = 1) %>%
+  pull(replication)
+
+df |>
+  ggplot(aes(x = node_id, y = betweenness, group = replication)) +
+  geom_line(alpha = 0.15, linewidth = 0.3) +
+  geom_line(data = filter(Q3_graph_data, replication == highlight),
+            colour = "red", linewidth = 0.8) +
+  geom_line(data = filter(Q3_graph_data, replication == lowlight),
+            colour = "blue", linewidth = 0.8) +
+  labs(x = "Node", y = "Betweenness") +
+  geom_line(data = filter(Q3_graph_data, replication == meanlight),
+            colour = "green", linewidth = 0.8) +
+  labs(x = "Node", y = "Betweenness") +
+  theme_minimal()
+```
+
+```{r}
+ribbon_data <- Q3_graph_data %>%
+  group_by(node_id) %>%
+  summarise(
+    mean   = mean(betweenness),
+    .width = c(0.5, 0.8, 0.95),
+    .lower = c(quantile(betweenness, 0.25),
+               quantile(betweenness, 0.10),
+               quantile(betweenness, 0.025)),
+    .upper = c(quantile(betweenness, 0.75),
+               quantile(betweenness, 0.90),
+               quantile(betweenness, 0.975))
+  ) %>%
+  mutate(.width = factor(.width, levels = c(0.5, 0.8, 0.95)))
+
+ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .upper)) +
+  geom_lineribbon(aes(fill = .width), 
+                  alpha = 0.4,
+                  colour = 'red') +
+  scale_fill_manual(values = c('0.5' = "#94AEA8", 
+                               '0.8' = "#285C50", 
+                               '0.95' = "#142E28")) + 
+  labs(
+    title = "Node betweenness by attachment order",
+    x = "Node (attachment order)", 
+    y = "Betweenness",
+    ) +
+  theme_minimal()
+
+
+```
 
 
 ### Discussion
