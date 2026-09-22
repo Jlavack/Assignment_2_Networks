@@ -41,13 +41,6 @@ custom_palette <- c(
   "#285c50"
   # "#18171e"
   )
-
-#Tones for the fill
-# "#94AEA8"
-# "#5E857C"
-# "#285C50"
-# "#1E453C"
-# "#142E28"
 ```
 
 
@@ -446,27 +439,22 @@ ribbon_data <- Q3_graph_data %>%
   
 ```
 
-```{r}
-class(ribbon)
-class(rain)
-```
-
 
 ```{r exercise 3 chart}
 #| label: ex3-chart
 #| fig-width: 9
 #| fig-height: 6
 
-rain + ribbon + 
-  plot_layout(ncol = 2, widths = c(0.3, 0.7)) 
-  
-```
+#I want to look at the summary stat as per hte question, but I also want to see
+#how the summary stat varies structurally. BA graphs are "ordered" you could say.
+#Nodes are sequentially attached to the graph, so the noe number is a proxy for 
+#how long it has been in the graph, and therefore the node's betweenness will
+#likely reflect that. 
 
-
-
-```{r}
+#===== Rain cloud chart =====#
 widths = c(0.5, 0.8, 0.95)
 
+#set up geoms
 rain <- Q3_graph_data %>%
   group_by(replication) %>%
   summarise(betweenness = mean(betweenness)) %>%
@@ -480,7 +468,6 @@ rain <- Q3_graph_data %>%
     show.legend = c(size = FALSE, fill_ramp = TRUE),
     col = NA,
     fill = "#5a903f",
-    # scale = 0.5 #shrinking to find best look without overlap
   ) +
     #make it rain!
   stat_dotsinterval(
@@ -488,7 +475,6 @@ rain <- Q3_graph_data %>%
     .width = widths,
     side = 'bottom',
     layout = 'bin',
-    # scale = 0.4,
     slab_linewidth = NA,
     col = NA,
     fill = "#5a903f",
@@ -531,10 +517,8 @@ rain <- Q3_graph_data %>%
     panel.grid.minor.x = element_blank(),   
   )
 
-```
 
-
-```{r}
+#===== Ribbon Chart =====#
 #set up geoms
 ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .upper)) +
   geom_lineribbon(aes(fill = .width), 
@@ -566,7 +550,7 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
   #labels
   labs(
     title = "",
-    subtitle = "As new nodes are attached, fewer paths traverse them\nand the confidence interval narrows towards zero.",
+    subtitle = "As new individuals interact, fewer paths traverse them,\nbetweenness tends to zero, and the confidence interval narrows\n towards zero.",
     x = "Node (attachment order)", 
     y = "Betweenness",
     ) +
@@ -579,7 +563,12 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
     plot.subtitle = element_text(size = 15),    
   )
 
-
+#===== Patchwork Output=====#
+rain + ribbon + 
+  plot_layout(ncol = 2, widths = c(0.3, 0.7)) +
+  plot_annotation(title = "Preferential attachment graph node betweenness from 1000 replications") &
+  theme(plot.title = element_text(family = "Calibri", size = 25))
+  
 ```
 
 
