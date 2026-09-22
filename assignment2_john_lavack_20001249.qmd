@@ -26,6 +26,7 @@ library(tidyverse)
 library(ggdist)
 library(distributional)
 library(igraph)
+library(patchwork)
 #Uncomment and run if required for exercise 2, question 2. I didn't have Calibri set up. 
 library(showtext)
 library(sysfonts)
@@ -40,6 +41,13 @@ custom_palette <- c(
   "#285c50"
   # "#18171e"
   )
+
+#Tones for the fill
+# "#94AEA8"
+# "#5E857C"
+# "#285C50"
+# "#1E453C"
+# "#142E28"
 ```
 
 
@@ -55,7 +63,7 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 
 ### Question 1: Which diet produces the heaviest chicks by day 21?
 
-```{r exercise1 q1}
+```{r exercise1 graph 1}
 #| fig-width: 10
 #| fig-height: 6
 
@@ -112,86 +120,6 @@ Q1_data_CI %>%
   )
 
 ```
-
-
-```{r exercise 1, question 1}
-#| label: ex1-q1
-#| fig-width: 10
-#| fig-height: 6
-
-# To answer this I will do a ribbon plot. Grouping the data by diet.
-# This will use geom_lineribbon from ggdist
-# change this to a interval plot showing CI
-
-Q1_data <- as.data.frame(ChickWeight)
-
-Q1_data %>%
-  # filter(Time == 21) %>%
-  group_by(Diet, Time) %>%
-  #create formula components for CIs
-  summarise(
-    n = n(),
-    Mean_weight = mean(weight),
-    se = sd(weight) / sqrt(n()),
-    .groups = 'drop'
-  ) %>%
-  #calculate the CIs
-  mutate(
-    ci_50_lower = Mean_weight - qt(0.75, n - 1) * se,
-    ci_50_upper = Mean_weight + qt(0.75, n - 1) * se,
-    ci_80_lower = Mean_weight - qt(0.90, n - 1) * se,
-    ci_80_upper = Mean_weight + qt(0.90, n - 1) * se,
-    ci_95_lower = Mean_weight - qt(0.975, n - 1) * se,
-    ci_95_upper = Mean_weight + qt(0.975, n - 1) * se,
-  ) %>% 
-  #pivoting to make it shaped like the data from mean_qi(), which was so easy to use
-  pivot_longer(starts_with("ci_"), 
-               names_to = c("type", ".width", "interval"),
-               names_sep = "_",
-               values_to = "value") %>%
-  pivot_wider(names_from = "interval",
-              names_prefix = ".",
-              values_from = "value") %>%
-  #making ci intervals factors for neat graph fill mapping
-  mutate(.width = factor(sub("ci_", "", .width), 
-                         levels = c("50", "80", "95"))) %>%
-  #plotting, them geoms
-  ggplot(aes(x= Time, y = Mean_weight)) +
-  #this I found at https://mjskay.github.io/ggdist/articles/lineribbon.html
-  geom_lineribbon(aes(ymin = .lower, ymax = .upper, fill = .width), 
-                  col = '#a13939',
-                  alpha = 0.4,
-                  linewidth = 0.8) +
-  facet_wrap(~ Diet, labeller = labeller(Diet = ~ paste("Diet", .))) +
-  #Scale related commands
-  # scale_color_manual(values = custom_palette) +
-  #custom fill based off custom palette
-  scale_fill_manual(values = c("95" = "#94AEA8", 
-                               "80" = "#5E857C", 
-                               "50" = "#285C50")) +
-  #Labels
-  labs(title = 'Confidence intervals for chick weight widen as chicks age',
-       subtitle = 'As diets increase weight gain, their confidence intervals also widen',
-       fill = 'Confidence Interval',
-       x = "Time (Days since birth)",
-       y = "Mean Chick Weight (grams)") +
-  #themes
-  theme_minimal() +
-  theme(legend.position = 'top',
-        plot.title = element_text(size = 15),
-        strip.text = element_text(face = "bold"),
-        axis.title.x = element_text(margin = margin(t = 10)),
-        axis.title.y = element_text(margin = margin(r = 10)))
-
-#Tones for the fill
-"#94AEA8"
-"#5E857C"
-"#285C50"
-"#1E453C"
-"#142E28"
-
-```
-
 
 ### Question 2: Which diet(s) have an unusual distribution of day-21 weights?
 
@@ -391,10 +319,7 @@ ggraph(g, layout = "kk") +
 
 ```{r}
 #| label: ex3-setup
-# ---------------------------------------------------------------
-# CHANGE THIS: replace 00 with the last two digits of your
-# student ID, e.g. if your ID ends ...2107, use student_id <- 7
-# ---------------------------------------------------------------
+
 student_id <- 49
 set.seed(student_id)
 
@@ -412,26 +337,6 @@ g <- switch(model_choice + 1,
          ) |>
   activate(edges) |>
   mutate(edge_betweenness = centrality_edge_betweenness(directed = FALSE))
-
-g
-
-local_c <- transitivity(g, type = "local", isolates = 'zero') #all 0, pointless. 
-
-#some summary stats. This is a rich get richer one. With no triangles. No looping, only linear paths
-tibble(
-  density = edge_density(g), #will be low becuase of the bridging nature of BA graphs
-  n_nodes = vcount(g),
-  n_edges = ecount(g),
-  average_degree = mean(degree(g)), #mean of all vertices - should be sparser
-  clustering_coef = transitivity(g, type = "average"), #decays to 0, so no clustering is expected in BA
-  av_path_len = average.path.length(g, directed = FALSE, unconnected = TRUE),
-  components = components(g)$no,
-  max_degree = max(degree(g)),
-  min_degree = min(degree(g)),
-  betweeness = mean(betweenness(g, directed = FALSE),), #high, because BA has hubs that lots of traffic goes through
-  edge_betweenness = mean(edge_betweenness(g, directed = FALSE))
-)
-
 
 ```
 
@@ -476,7 +381,7 @@ ggraph(g, layout = "kk") +
 
 ### Question
 
-How does average betweenness of this graph vary under resampling?. 
+How does average betweenness of this graph's node attachment vary under resampling?. 
 
 ### Introduction
 
@@ -488,17 +393,12 @@ How does average betweenness of this graph vary under resampling?.
 
 Note to self: betweenness is a measure of traffic of shortest paths passing through the node. 
 How many shortest paths pass through the node
-How often each edge lies on a shortest path between other pairs.
+
 
 To analyse the summary statistic parametric resampling will be applied - bootstrapping using the same parameters. 
 This is the appropriate choice because with a Barabasi-Albert graph, the final graph is the end result of a stochastic process which grows stepwise through time.
 A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.
 Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. 
-
-```{r}
-g
-```
-
 
 ### Analysis
 
@@ -524,41 +424,50 @@ Q3_data <- function(n, B = 1000) {
   }) %>%
     bind_rows()
 }
+
+#create the dataset, using n from the graph setup
+Q3_graph_data <- Q3_data(n, B = 1000)
+
+#wrangle data set for the ribbon
+ribbon_data <- Q3_graph_data %>%
+  group_by(node_id) %>%
+  reframe( #gor a warning using summarise
+    mean   = mean(betweenness),
+    .width = c(0.5, 0.8, 0.95),
+    .lower = c(quantile(betweenness, 0.25),
+               quantile(betweenness, 0.10),
+               quantile(betweenness, 0.025)),
+    .upper = c(quantile(betweenness, 0.75),
+               quantile(betweenness, 0.90),
+               quantile(betweenness, 0.975)),
+    .groups = 'drop'
+  ) %>%
+  mutate(.width = factor(.width, levels = c(0.5, 0.8, 0.95)))
   
+```
 
+```{r}
+class(ribbon)
+class(rain)
 ```
 
 
-```{r}
+```{r exercise 3 chart}
 #| label: ex3-chart
+#| fig-width: 9
+#| fig-height: 6
 
-Q3_graph_data <- Q3_data(n, 1000) 
-
-Q3_graph_data %>%
-  group_by(replication) %>%
-  summarise(mean = mean(betweenness)) %>%
-  ggplot(aes(x = mean)) +
-  geom_histogram(bins = 50, alpha = 0.4) +
-  theme_minimal()
-
+rain + ribbon + 
+  plot_layout(ncol = 2, widths = c(0.3, 0.7)) 
+  
 ```
 
-```{r}
-Q3_graph_data %>%
-  group_by(replication) %>%
-  summarise(mean = mean(betweenness)) %>%
-  ggplot(aes(x = 0, y = mean)) +
-  geom_point(position = position_jitter(width = 0.2), alpha = 0.4) +
-  geom_boxplot(fill = NA, col = 'black') 
-
-
-```
 
 
 ```{r}
 widths = c(0.5, 0.8, 0.95)
 
-Q3_graph_data %>%
+rain <- Q3_graph_data %>%
   group_by(replication) %>%
   summarise(betweenness = mean(betweenness)) %>%
   #graph geoms
@@ -570,7 +479,8 @@ Q3_graph_data %>%
     .width = widths,
     show.legend = c(size = FALSE, fill_ramp = TRUE),
     col = NA,
-    scale = 0.5 #shrinking to find best look without overlap
+    fill = "#5a903f",
+    # scale = 0.5 #shrinking to find best look without overlap
   ) +
     #make it rain!
   stat_dotsinterval(
@@ -578,18 +488,17 @@ Q3_graph_data %>%
     .width = widths,
     side = 'bottom',
     layout = 'bin',
-    scale = 0.4,
+    # scale = 0.4,
     slab_linewidth = NA,
     col = NA,
+    fill = "#5a903f",
     show.legend = FALSE,
-    quantiles = 100 #each dot represents a part of a chick, made it like this to see the distribution unsmoothed better
+    quantiles = 200 #each dot is 5 units
   ) +
     #add a dot at the mean
   stat_summary(geom = "point", fun = mean, col = '#18171e', size = 3) +
-    #add the vertical line for overall mean
   #scale commands
     #colour & legend
-  scale_fill_manual(values = custom_palette) +
   scale_fill_ramp_discrete(
     from = "white",
     na.translate = FALSE
@@ -598,101 +507,77 @@ Q3_graph_data %>%
     # axis
   scale_y_continuous(
     breaks = seq(
-      from = round(min(Q3_graph_data$betweenness),0),
-      to = round(max(Q3_graph_data$betweenness),0),
-      by = 20)
+      from = 40,
+      to = 200,
+      by = 20),
+    limits = c(40, 220)
   ) +
   #labels
   labs(
-    title = 'Mean betweenness from 1000 replications of the BA graph',
-    subtitle = 'Very similar', 
-    y = "Betweenness",
+    title = '',
+    subtitle = 'As replications grow,\nthe distribution of mean betweenness\napproximates a normal distribution.', 
+    y = "Mean Betweenness",
     x = ""
   ) +
   #themes
   theme_minimal(base_family = "Calibri") +
   theme(
-    plot.title = element_text(size = 20),
     plot.subtitle = element_text(size = 15),
     axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12, margin = margin(t = 10)),
-    axis.text.x = element_text(size = 15),
-    legend.position = 'top'
+    axis.title.y = element_text(size = 12, margin = margin(b = 10)),
+    axis.text.x = element_blank(),
+    legend.position = 'top',
+    panel.grid.major.x = element_blank(),
+    panel.grid.minor.x = element_blank(),   
   )
 
 ```
 
 
-```{r spaghetti chart}
-
-#select 50 random graphs so the visualisation isn't impossible to read.
-df <- Q3_graph_data %>% 
-  filter(replication %in% sample(1:1000, 50))
-
-#create the max mean betweenness
-highlight <- Q3_graph_data %>%
-  group_by(replication) %>%
-  summarise(mean_btwn = mean(betweenness), .groups = "drop") %>%
-  slice_max(mean_btwn, n = 1) %>%
-  pull(replication)
-
-lowlight <- Q3_graph_data %>%
-  group_by(replication) %>%
-  summarise(mean_btwn = mean(betweenness), .groups = "drop") |>
-  slice_min(mean_btwn, n = 1) %>%
-  pull(replication)
-
-#I'm on a trend now...
-meanlight <- Q3_graph_data %>%
-  group_by(replication) %>%
-  summarise(mean_btwn = mean(betweenness), .groups = "drop") %>%
-  #rank them by closest to absolute mean, then pick the most average
-  arrange(abs(mean_btwn - mean(mean_btwn))) %>%
-  slice_head(n = 1) %>%
-  pull(replication)
-
-df |>
-  ggplot(aes(x = node_id, y = betweenness, group = replication)) +
-  geom_line(alpha = 0.15, linewidth = 0.3) +
-  geom_line(data = filter(Q3_graph_data, replication == highlight),
-            colour = "red", linewidth = 0.8) +
-  geom_line(data = filter(Q3_graph_data, replication == lowlight),
-            colour = "blue", linewidth = 0.8) +
-  labs(x = "Node", y = "Betweenness") +
-  geom_line(data = filter(Q3_graph_data, replication == meanlight),
-            colour = "green", linewidth = 0.8) +
-  labs(x = "Node", y = "Betweenness") +
-  theme_minimal()
-```
-
 ```{r}
-ribbon_data <- Q3_graph_data %>%
-  group_by(node_id) %>%
-  summarise(
-    mean   = mean(betweenness),
-    .width = c(0.5, 0.8, 0.95),
-    .lower = c(quantile(betweenness, 0.25),
-               quantile(betweenness, 0.10),
-               quantile(betweenness, 0.025)),
-    .upper = c(quantile(betweenness, 0.75),
-               quantile(betweenness, 0.90),
-               quantile(betweenness, 0.975))
-  ) %>%
-  mutate(.width = factor(.width, levels = c(0.5, 0.8, 0.95)))
-
-ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .upper)) +
+#set up geoms
+ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .upper)) +
   geom_lineribbon(aes(fill = .width), 
                   alpha = 0.4,
-                  colour = 'red') +
-  scale_fill_manual(values = c('0.5' = "#94AEA8", 
-                               '0.8' = "#285C50", 
-                               '0.95' = "#142E28")) + 
+                  colour = NA) +
+  geom_line(aes(y= mean, colour = "Mean betweenness"), linewidth = 1) +
+  #Scale commands
+  scale_fill_manual(values = c('0.5' = "#5A903F", 
+                               '0.8' = "#9CBC8C", 
+                               '0.95' = "#DEE9D9"),
+                    guide = 'none') + #will use the rain cloud legend
+  scale_colour_manual(values = c("Mean betweenness" = "#a13939"), name = NULL) +
+
+  #axis
+  scale_x_continuous(
+    breaks = seq(
+    from = 0,
+    to = max(Q3_graph_data$node_id),
+    by = 5),
+    expand = expansion(mult = 0, add = 0)
+  ) +
+  scale_y_continuous(
+    breaks = seq(
+    from = 0,
+    to = max(Q3_graph_data$betweenness),
+    by = 100),
+    expand = expansion(mult = 0, add = 0)
+  ) +
+  #labels
   labs(
-    title = "Node betweenness by attachment order",
+    title = "",
+    subtitle = "As new nodes are attached, fewer paths traverse them\nand the confidence interval narrows towards zero.",
     x = "Node (attachment order)", 
     y = "Betweenness",
     ) +
-  theme_minimal()
+  #theme
+  theme_minimal(base_family = 'Calibri') +
+  theme(
+    legend.position = 'top',
+    legend.justification = 'left',
+    plot.title = element_text(size = 20),
+    plot.subtitle = element_text(size = 15),    
+  )
 
 
 ```
