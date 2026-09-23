@@ -299,8 +299,8 @@ ggraph(g, layout = "kk") +
   theme(
     legend.position = "bottom",
     plot.margin = margin(10,10,10,10),
-    plot.title = element_text(size = 22, face = 'plain'),
-    plot.subtitle = element_text(size = 14, margin = margin(t=0, b=15))
+    plot.title = element_text(size = 40, face = 'plain'),
+    plot.subtitle = element_text(size = 25, margin = margin(t=0, b=15))
   )
 ```
 
@@ -364,8 +364,8 @@ ggraph(g, layout = "kk") +
   theme(
     legend.position = "bottom",
     plot.margin = margin(10,10,10,10),
-    plot.title = element_text(size = 28, face = 'plain'),
-    plot.subtitle = element_text(size = 12, margin = margin(t=0, b=15))
+    plot.title = element_text(size = 35, face = 'plain'),
+    plot.subtitle = element_text(size = 20, margin = margin(t=0, b=15))
   )
 
 ```
@@ -502,8 +502,8 @@ rain <- Q3_graph_data %>%
   #themes
   theme_minimal(base_family = "Calibri") +
   theme(
-    plot.subtitle = element_text(size = 15),
-    axis.text.y = element_text(size = 10),
+    plot.subtitle = element_text(size = 20),
+    axis.text.y = element_text(size = 15),
     axis.text.x = element_blank(),
     legend.position = 'top',
     panel.grid.major.x = element_blank(),
@@ -552,7 +552,10 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
   theme(
     legend.position = 'top',
     legend.justification = 'left',
-    plot.subtitle = element_text(size = 15),    
+    plot.subtitle = element_text(size = 20),
+    axis.text.x = element_text(size = 15),
+    axis.text.y = element_text(size = 15),
+
   )
 
 #===== Ridgeline =====#
@@ -573,7 +576,7 @@ ridgeline <- Q3_graph_data %>%
        x = "Betweenness (thousands)") +
   theme_minimal(base_family = "Calibri") +
   theme(legend.position = 'top',
-        plot.subtitle = element_text(size = 15),
+        plot.subtitle = element_text(size = 20),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank())
 
@@ -581,7 +584,9 @@ ridgeline <- Q3_graph_data %>%
 (rain + ribbon + plot_layout(widths = c(0.3, 0.7))) / ridgeline +
   plot_layout(heights = c(1.5, 1)) +
   plot_annotation(title = "Preferential attachment graph node betweenness from 1000 replications") &
-  theme(plot.title = element_text(family = "Calibri", size = 20))
+  theme(plot.title = element_text(family = "Calibri", size = 40),
+        axis.text.x = element_text(size = 15),
+        axis.text.y = element_text(size = 15),)
   
 ```
 
