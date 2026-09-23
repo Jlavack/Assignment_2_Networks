@@ -27,6 +27,7 @@ library(ggdist)
 library(distributional)
 library(igraph)
 library(patchwork)
+library(ggridges)
 #Uncomment and run if required for exercise 2, question 2. I didn't have Calibri set up. 
 library(showtext)
 library(sysfonts)
@@ -444,10 +445,10 @@ ribbon_data <- Q3_graph_data %>%
 ```
 
 
-```{r exercise 3 chart}
+```{r exercise 3 chart, message = FALSE}
 #| label: ex3-chart
-#| fig-width: 10
-#| fig-height: 5
+#| fig-width: 15
+#| fig-height: 10
 
 #I want to look at the summary stat as per hte question, but I also want to see
 #how the summary stat varies structurally. BA graphs are "ordered" you could say.
@@ -565,59 +566,35 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
     plot.subtitle = element_text(size = 12),    
   )
 
+#===== Ridgeline =====#
+ridgeline <- Q3_graph_data %>% 
+  mutate(node_id = factor(node_id)) %>%
+  filter(node_id %in% c(1,5,10,15,20,25,30,35,40,45,50,55,60,65,70)) %>%
+  ggplot(aes(x = betweenness/1000, y = node_id, fill = ..x..)) +
+  geom_density_ridges_gradient(scale = 10, 
+                               rel_min_height = 0.01) +
+  #scale commands
+  scale_fill_gradientn(colours = c("#a13939", "#285c50", "#5a903f", "#9CBC8C", "#DEE9D9")) +
+  #labels
+  labs(fill = 'Betweenness',
+       title = "",
+       subtitle = "As more notes are added, betweenness distribution narrows\nand tends towards a peaked, narrow normal distribution.",
+       y = "Node attachment",
+       x = "Betweenness (thousands)") +
+  theme_minimal(base_family = "Calibri") +
+  theme(legend.position = 'top',
+        plot.subtitle = element_text(size = 12),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank())
+
 #===== Patchwork Output=====#
-rain + ribbon + 
-  plot_layout(ncol = 2, widths = c(0.3, 0.7)) +
+(rain + ribbon + plot_layout(widths = c(0.3, 0.7))) / ridgeline +
+  plot_layout(heights = c(1.5, 1)) +
   plot_annotation(title = "Preferential attachment graph node betweenness from 1000 replications") &
   theme(plot.title = element_text(family = "Calibri", size = 20))
   
 ```
 
-```{r}
-Q3_graph_data %>% 
-  filter(replication > 3) %>%
-  ggplot(aes(x = betweenness, y = node_id)) +
-  stat_slab(
-    scale = 0.4,
-    side = "right",
-    fill_type = "gradient",
-    fill = "#5a903f",
-    color = "#142E28",
-    alpha = 0.6,
-    normalize = "xy"
-  ) +
-  scale_y_continuous(breaks = seq(1, 500, by = 50)) +
-  labs(x = "Betweenness", y = "Node (attachment order)",
-       title = "Betweenness distribution by node across 1000 replications") +
-  theme_minimal(base_family = "Calibri") +
-  theme(
-    plot.title = element_text(size = 20),
-    axis.text.y = element_text(size = 8)
-  )
-  
-  
-  # 
-  # ggplot(aes(x = betweenness, y = node_id)) +
-  # stat_density_2d(
-  #   geom = "slab",
-  #   aes(.density = density),
-  #   scale = 0.4,
-  #   side = "right",
-  #   fill_type = "gradient",
-  #   fill = "#5a903f",
-  #   color = "#142E28",
-  #   alpha = 0.6,
-  #   normalize = "xy"
-  # ) +
-  # scale_y_continuous(breaks = seq(1, 500, by = 50)) +
-  # labs(x = "Betweenness", y = "Node (attachment order)",
-  #      title = "Betweenness distribution by node across 1000 replications") +
-  # theme_minimal(base_family = "Calibri") +
-  # theme(
-  #   plot.title = element_text(size = 20),
-  #   axis.text.y = element_text(size = 8)
-  # )
-```
 
 
 ### Discussion
