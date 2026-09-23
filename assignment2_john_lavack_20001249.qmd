@@ -47,13 +47,6 @@ custom_palette <- c(
 
 ## Exercise 1
 
-For each of the following questions you are required to produce a chart that seeks to answer the question, focusing only on the final weigh-in (Time == 21).
-
-Which diet produces the heaviest chicks by day 21, and how confident can we be in that ranking?
-
-* Your chart must show a summary statistic (e.g. mean) for each diet together with an interval that communicates sampling uncertainty (e.g. SE or a confidence interval)
-* Your chart must clearly state, in the labelling (axis title, subtitle or caption), exactly what the interval represents
-* If you use colour you must choose a palette other than the defaults
 
 ### Question 1: Which diet produces the heaviest chicks by day 21?
 
