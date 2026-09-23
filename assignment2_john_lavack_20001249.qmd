@@ -60,9 +60,11 @@ Which diet produces the heaviest chicks by day 21, and how confident can we be i
 #| fig-width: 10
 #| fig-height: 6
 
+Q1_data <- ChickWeight
 
 # wrangling
 Q1_data_CI <- Q1_data %>% 
+  filter(Time == 21) %>%
   group_by(Diet) %>%
   summarise(df = n() -1,
             n = n(), 
@@ -97,10 +99,10 @@ Q1_data_CI %>%
   ) +
   #Labels
   labs(title = 'Diet 3 has highest mean chick weight gain 21 days after hatching',
-     subtitle = "It's wide confidence interval implies high variability, across the low sample size",
+     subtitle = "Significant overlap with the intervals of diets 2 and 4 implies low confidence in the reported mean.\nDiets 2 and 4 may rank higher after repeated resampling or in a larger sample study.",
      fill = 'Confidence Interval',
      y = "",
-     x = "Mean Chick Weight (grams)",
+     x = "Mean Chick Weight and confidence interval (grams)",
      colour = "Confidence Interval") +
   #themes
   theme_minimal() +
@@ -126,7 +128,9 @@ Q1_data_CI %>%
 #this will show the desnity on top with the point beneath
 
 widths = c(0.5, 0.8, 0.95, 1)
-mean_chick_weight <- Q1_data %>% filter(Time == 21) %>% summarise(x = round(mean(weight), 2))
+mean_chick_weight <- Q1_data %>% 
+  filter(Time == 21) %>% 
+  summarise(x = round(mean(weight), 2))
 
 #little data pret
 Q1_data %>%
@@ -238,7 +242,7 @@ Q1_data %>%
 
 *(no more than 3 sentences)*
 
-First, the raw graph data is wrangled to have one row per unique edge using `count()` (aka single weighted edge pair), which is effectively `group_by(to, from) %>% summarise(weight = n())` and shows us if a student has a friend in one or both years (weight 1 and weight 2 respectively).  
+First, the raw graph data is wrangled to have one row per unique edge using `count()` (AKA single weighted edge pair), which is effectively `group_by(to, from) %>% summarise(weight = n())` and shows us if a student has a friend in one or both years (weight 1 and weight 2 respectively).  
 Next the data is converted to an object tidygraph can use, which treats relationships as symmetric (not directed), so we are assuming friendship is mutual.  
 Lastly it creates degree as the number of connections each node has using `centrality_degree()`, which gives the ability to visualise how each student (node) has rated their friends over the two years of interest.  
 
@@ -301,8 +305,8 @@ ggraph(g, layout = "kk") +
   theme(
     legend.position = "bottom",
     plot.margin = margin(10,10,10,10),
-    plot.title = element_text(size = 28, face = 'plain'),
-    plot.subtitle = element_text(size = 18, margin = margin(t=0, b=15))
+    plot.title = element_text(size = 22, face = 'plain'),
+    plot.subtitle = element_text(size = 14, margin = margin(t=0, b=15))
   )
 ```
 
@@ -369,10 +373,6 @@ ggraph(g, layout = "kk") +
     plot.subtitle = element_text(size = 12, margin = margin(t=0, b=15))
   )
 
-```
-
-```{r}
-g |> vcount()
 ```
 
 
@@ -446,8 +446,8 @@ ribbon_data <- Q3_graph_data %>%
 
 ```{r exercise 3 chart}
 #| label: ex3-chart
-#| fig-width: 9
-#| fig-height: 6
+#| fig-width: 10
+#| fig-height: 5
 
 #I want to look at the summary stat as per hte question, but I also want to see
 #how the summary stat varies structurally. BA graphs are "ordered" you could say.
@@ -512,9 +512,8 @@ rain <- Q3_graph_data %>%
   #themes
   theme_minimal(base_family = "Calibri") +
   theme(
-    plot.subtitle = element_text(size = 15),
+    plot.subtitle = element_text(size = 12),
     axis.text.y = element_text(size = 10),
-    axis.title.y = element_text(size = 12, margin = margin(b = 10)),
     axis.text.x = element_blank(),
     legend.position = 'top',
     panel.grid.major.x = element_blank(),
@@ -563,16 +562,61 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
   theme(
     legend.position = 'top',
     legend.justification = 'left',
-    plot.title = element_text(size = 20),
-    plot.subtitle = element_text(size = 15),    
+    plot.subtitle = element_text(size = 12),    
   )
 
 #===== Patchwork Output=====#
 rain + ribbon + 
   plot_layout(ncol = 2, widths = c(0.3, 0.7)) +
   plot_annotation(title = "Preferential attachment graph node betweenness from 1000 replications") &
-  theme(plot.title = element_text(family = "Calibri", size = 25))
+  theme(plot.title = element_text(family = "Calibri", size = 20))
   
+```
+
+```{r}
+Q3_graph_data %>% 
+  filter(replication > 3) %>%
+  ggplot(aes(x = betweenness, y = node_id)) +
+  stat_slab(
+    scale = 0.4,
+    side = "right",
+    fill_type = "gradient",
+    fill = "#5a903f",
+    color = "#142E28",
+    alpha = 0.6,
+    normalize = "xy"
+  ) +
+  scale_y_continuous(breaks = seq(1, 500, by = 50)) +
+  labs(x = "Betweenness", y = "Node (attachment order)",
+       title = "Betweenness distribution by node across 1000 replications") +
+  theme_minimal(base_family = "Calibri") +
+  theme(
+    plot.title = element_text(size = 20),
+    axis.text.y = element_text(size = 8)
+  )
+  
+  
+  # 
+  # ggplot(aes(x = betweenness, y = node_id)) +
+  # stat_density_2d(
+  #   geom = "slab",
+  #   aes(.density = density),
+  #   scale = 0.4,
+  #   side = "right",
+  #   fill_type = "gradient",
+  #   fill = "#5a903f",
+  #   color = "#142E28",
+  #   alpha = 0.6,
+  #   normalize = "xy"
+  # ) +
+  # scale_y_continuous(breaks = seq(1, 500, by = 50)) +
+  # labs(x = "Betweenness", y = "Node (attachment order)",
+  #      title = "Betweenness distribution by node across 1000 replications") +
+  # theme_minimal(base_family = "Calibri") +
+  # theme(
+  #   plot.title = element_text(size = 20),
+  #   axis.text.y = element_text(size = 8)
+  # )
 ```
 
 
