@@ -344,6 +344,7 @@ g <- switch(model_choice + 1,
 
 #stress and KK were similar in look, but kk is the easier one to read.
 #try directed, try weights on edges. 
+#this chart is not required for the assessment, but I think it is helpful for the discussion
 ggraph(g, layout = "kk") +
   geom_edge_link(aes(width = edge_betweenness), alpha = 0.4, color = "#676767") + 
   scale_edge_width(range = c(0.5, 4),
@@ -383,20 +384,15 @@ How does mean betweenness of this graph's node attachment vary under resampling?
 
 ### Introduction
 
-> YOUR INTRODUCTION HERE
-
 Barabasi-Albert graphs model preferential attachment processes. AKA a 'rich get richer' type processes, which is from the Bible, Matthew 25:29. These processes add nodes sequentially to the graph and join them with edges to existing nodes. Over repeated attachments, hubs are created and 'main paths' emerge. To those nodes that have, more will be attached and they will be attached in abundance. This sort of graph is not directed nor weighted, as each node is sequentially attached to one other node and 'communication' is two way. I.e. the hierarchy emerges in terms of hubs and paths, not by weights. The graph in this example has 70 nodes and 69 edges. For this graph the parameter for edges is set at the default of 2 resulting in fewer edges than nodes. The summary statistic of interest in this analysis is called betweenness. It measures the amount of shortest paths passing through the node. It is a measure of traffic and is a simple way to analyse the structure of the graph at a point in time and as nodes are added. 
 Barabasi-Albert graphs are known as 'scale-free' networks which means that most nodes have few connections and few have lots (power-law degree distribution). Making them useful for modelling networks such as the internet and social media. 
 
 ### Approach
 
-> YOUR APPROACH HERE
-
-
 To analyse the summary statistic parametric resampling will be applied - recreating the graph using the same parameters. 
 This is the appropriate choice because with a Barabasi-Albert graph, the final graph is the end result of a stochastic process which grows stepwise through time.
 A process of preferential attachment. Resampling the same graph/nodes with replacement would be to undo the preferential attachment structure. The uncertainty of interest is the model uncertainty, i.e. how much the mean betweenness varies across the same Barabasi-Albert process, not the betweenness from the observed final dataset.
-Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. Because the graph is a process of sequential attachment, a ribbon plot showing betweenness as nodes are attached will reflect both the summary statistic and the structure of the graph. Next to this a raincloud chart can show the overall shape of the mean betweenness for each replicate graph.  
+Because the resampling process used is frequentist, the uncertainty is best shown with confidence intervals. Because the graph is a process of sequential attachment, a ribbon plot showing betweenness as nodes are attached will reflect both the summary statistic and the structure of the graph. Next to this a raincloud chart can show the overall shape of the mean betweenness for each replicate graph. Beneath this a ridge-line plot can show the betweenness distribution as each node is added across all replicates, allowing analysis of how the betweenness score's distribution changes with the structure of the graph. A single chart would not reveal as much about the structural link between the graph and the betweenness value. 
 
 ### Analysis
 
@@ -513,7 +509,7 @@ rain <- Q3_graph_data %>%
   #themes
   theme_minimal(base_family = "Calibri") +
   theme(
-    plot.subtitle = element_text(size = 12),
+    plot.subtitle = element_text(size = 15),
     axis.text.y = element_text(size = 10),
     axis.text.x = element_blank(),
     legend.position = 'top',
@@ -563,7 +559,7 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
   theme(
     legend.position = 'top',
     legend.justification = 'left',
-    plot.subtitle = element_text(size = 12),    
+    plot.subtitle = element_text(size = 15),    
   )
 
 #===== Ridgeline =====#
@@ -575,15 +571,16 @@ ridgeline <- Q3_graph_data %>%
                                rel_min_height = 0.01) +
   #scale commands
   scale_fill_gradientn(colours = c("#a13939", "#285c50", "#5a903f", "#9CBC8C", "#DEE9D9")) +
+  scale_y_discrete(breaks = c("1", "10", "20", "30", "40", "50", "60", "70")) +
   #labels
   labs(fill = 'Betweenness',
        title = "",
-       subtitle = "As more notes are added, betweenness distribution narrows\nand tends towards a peaked, narrow normal distribution.",
+       subtitle = "Increasing node attachment drives the graph betweenness distribution towards a narrow, peaked normal distribution.",
        y = "Node attachment",
        x = "Betweenness (thousands)") +
   theme_minimal(base_family = "Calibri") +
   theme(legend.position = 'top',
-        plot.subtitle = element_text(size = 12),
+        plot.subtitle = element_text(size = 15),
         panel.grid.major.x = element_blank(),
         panel.grid.minor.x = element_blank())
 
@@ -599,7 +596,9 @@ ridgeline <- Q3_graph_data %>%
 
 ### Discussion
 
-> YOUR DISCUSSION HERE
+Barabasi-Albert graphs model a process through time. As time increases more nodes are added. Because betweenness is a measure of the number of shortest paths traversing a node, as more nodes are added this value will change for each node and for the graph as a whole. New nodes are added to the edges, which forces them to start with a low betweenness. This pattern can be seen in the graph representation at the beginning of this question. Across 1000 preferential attachment processes under the same parameters this betweenness change plays out. Across all graphs the mean betweenness tends towards a normal distribution as seen in the raincloud chart in the top left corner. Expected behaviour for an additive process. As new individuals (nodes) are added to the network and created interactions (edges) the first individuals betweenness increases while the later ones decreases. Across all 1000 graphs there is a wide confidence interval for initial individuals with a lower interval for newer individuals. This is expected because the 1000 graphs are randomly generated, so it isn't always certain that the first individuals will have more connections, only much more likely. Initially new individuals have fewer options to connect to, so the likelihood of an earlier node being connected to is high, while later when more individuals are in the network the probability for the initial nodes decreases. However, betweenness is a measure of shortest path traversal. So long as new shortest paths traverse earlier indivdiuals in the network, their betweenness will increase. This variability is shown in the ribbon chart where node 1 has the widest confidence intervals and node 70 has a narrow one. With the 'elbow' occurring near node 15. Finally, as nodes are added the betweenness of all graphs narrows towards a normal distribution, mimicking the overall mean betweenness of all graphs. Betweenness goes from a wide flat distribution with 1 node, to a decreasingly right skewed distribution until 40 nodes when it starts being a normal distribution. Further node result in a narrower distribution, but around 50-60 nodes there is little further change.      
+To answer the initial question: as nodes are attached to the graph, more shortest paths traverse the initial nodes. At first fewer node are traversed more frequently, but as more nodes are added, the pool of hubs increases and the betweenness measure stabilises. The distribution of betweenness normalises and the confidence interval for node betweenness narrows, until the addition of further nodes has little effect. Likely because the places where they can attach increase drastically and as a result the individual change one node causes to the betweenness measure of other nodes and the mean betweenness of the whole graph tend to 0. 
+
 
 ## Reflection
 
