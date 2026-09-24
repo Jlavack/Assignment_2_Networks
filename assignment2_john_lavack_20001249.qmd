@@ -499,7 +499,7 @@ rain <- Q3_graph_data %>%
   #labels
   labs(
     title = '',
-    subtitle = 'As replications grow,\nthe distribution of mean betweenness\napproximates a normal distribution.', 
+    subtitle = 'The distribution of mean betweenness\napproximates a normal distribution.', 
     y = "Mean Betweenness",
     x = ""
   ) +
@@ -550,7 +550,7 @@ ribbon <- ggplot(ribbon_data, aes(x = node_id, y = mean, ymin = .lower, ymax = .
   #labels
   labs(
     title = "",
-    subtitle = "As new individuals interact, fewer paths traverse them,\nbetweenness tends to zero, and the confidence interval narrows\n towards zero.",
+    subtitle = "As new individuals interact, fewer paths traverse them,\nbetweenness tends to zero, and the confidence interval narrows towards zero.",
     x = "Node (attachment order)", 
     y = "Betweenness",
     ) +
